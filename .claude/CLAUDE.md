@@ -91,11 +91,23 @@ powershell -Command "cd 'B:\study\AI\Happy-Vibe\vibehub'; uv pip install -e '.[d
 ### 3.2 使用规则
 
 1. **任务创建**: 开发新功能前，先在 vibe-kanban 创建对应任务
-2. **状态更新**: 开始开发时更新任务状态为 `inprogress`
-3. **完成标记**: 测试通过并提交后，更新任务状态为 `done`
-4. **并行开发**: 独立模块可以创建多个任务并行开发
+2. **任务启动**: 创建任务后，必须在 vibe-kanban 界面中启动任务（点击 Start 按钮），由 vibe-kanban 分配 Claude Code 会话执行
+3. **状态更新**: 任务执行过程中，vibe-kanban 会自动管理状态
+4. **完成标记**: 测试通过并提交后，更新任务状态为 `done`
+5. **并行开发**: 独立模块可以创建多个任务，在 vibe-kanban 中并行启动多个会话执行
 
-### 3.3 任务拆分原则
+### 3.3 任务执行流程
+
+```
+创建任务 (MCP) → 在 vibe-kanban 界面启动任务 → Claude Code 会话自动执行 → 完成后更新状态
+```
+
+**重要**: 不要在当前会话中直接开发 vibe-kanban 中的任务，应该：
+1. 使用 MCP 创建任务
+2. 在 vibe-kanban Web 界面中启动任务
+3. vibe-kanban 会分配独立的 Claude Code 会话来执行任务
+
+### 3.4 任务拆分原则
 
 ```
 可并行任务（无依赖）:
@@ -111,7 +123,7 @@ powershell -Command "cd 'B:\study\AI\Happy-Vibe\vibehub'; uv pip install -e '.[d
 └── 桌面监控器 → 依赖 API 端点
 ```
 
-### 3.4 MCP 工具调用示例
+### 3.5 MCP 工具调用示例
 
 ```python
 # 列出任务
