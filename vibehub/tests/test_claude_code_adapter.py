@@ -100,8 +100,10 @@ class TestClaudeCodeAdapter:
         self, adapter: ClaudeCodeAdapter, temp_log_dir: Path
     ) -> None:
         """测试获取最新会话文件。"""
-        # 创建多个日志文件
+        import time
+        # 创建多个日志文件，确保修改时间不同
         (temp_log_dir / "session-2024-01-14.jsonl").write_text("{}")
+        time.sleep(0.01)  # 确保文件修改时间不同
         (temp_log_dir / "session-2024-01-15.jsonl").write_text("{}")
 
         with patch.object(adapter, "get_log_path", return_value=temp_log_dir):

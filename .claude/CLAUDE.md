@@ -79,35 +79,160 @@ powershell -Command "cd 'B:\study\AI\Happy-Vibe\vibehub'; uv pip install -e '.[d
 
 ---
 
-## 三、Vibe-Kanban 任务管理
+## 三、Vibe-Kanban 并行开发模式
 
 本项目使用 `vibe-kanban-mcp` 进行任务管理和并行开发。
 
-### 3.1 项目信息
+### 3.1 概述
 
-- 项目名称: `Happy-Vibe`
-- 项目ID: `3f101d13-0e36-4097-af11-e54734fc2694`
+vibe-kanban MCP 是一个任务管理系统，支持启动独立的 Claude Code agent 会话进行并行开发。每个任务在独立工作区执行，完成后自动合并到主分支。适用于多个**完全独立、无依赖**的任务同时开发。
 
-### 3.2 使用规则
+### 3.2 项目和仓库信息
 
-1. **任务创建**: 开发新功能前，先在 vibe-kanban 创建对应任务
-2. **任务启动**: 创建任务后，必须在 vibe-kanban 界面中启动任务（点击 Start 按钮），由 vibe-kanban 分配 Claude Code 会话执行
-3. **状态更新**: 任务执行过程中，vibe-kanban 会自动管理状态
-4. **完成标记**: 测试通过并提交后，更新任务状态为 `done`
-5. **并行开发**: 独立模块可以创建多个任务，在 vibe-kanban 中并行启动多个会话执行
+| 项目 | ID |
+|------|-----|
+| 项目名称 | `Happy-Vibe` |
+| 项目ID | `3f101d13-0e36-4097-af11-e54734fc2694` |
+| 仓库ID | `e38a6122-023a-4e30-bbf5-b9499c2d3a8c` |
+| 基础分支 | `main` |
 
-### 3.3 任务执行流程
+### 3.3 使用场景
+
+**适合 vibe-kanban 并行的任务：**
+- 独立的功能模块开发（如能量计算、日志适配器、数据库模型）
+- 独立的 UI 组件开发
+- E2E 测试编写
+- API 文档完善
+- Godot 游戏场景开发
+
+**不适合 vibe-kanban 的任务：**
+- 有依赖关系的功能（如 REST API 依赖核心模块）
+- 需要实时调试的核心功能
+- 前后端联调
+- Bug 修复
+- 需要频繁交互确认的任务
+
+### 3.4 操作流程
 
 ```
-创建任务 (MCP) → 在 vibe-kanban 界面启动任务 → Claude Code 会话自动执行 → 完成后更新状态
+1. 创建任务 (MCP) → 2. 启动 workspace → 3. 独立 agent 执行 → 4. 自动合并到主分支 → 5. 代码审查
 ```
 
-**重要**: 不要在当前会话中直接开发 vibe-kanban 中的任务，应该：
-1. 使用 MCP 创建任务
-2. 在 vibe-kanban Web 界面中启动任务
-3. vibe-kanban 会分配独立的 Claude Code 会话来执行任务
+**工作原理**:
+- 每个任务启动一个独立的 Claude Code agent 会话
+- 在独立工作区内执行开发
+- 完成后自动合并代码到主分支
+- 本地执行，非云端
 
-### 3.4 任务拆分原则
+### 3.5 任务描述规范
+
+**重要**: 独立工作区是隔离的，任务描述必须包含完整上下文！
+
+任务描述模板：
+```markdown
+## 目标
+<清晰描述要实现的功能>
+
+## 背景
+<相关的项目背景和上下文>
+
+## 实现步骤
+1. <步骤1>
+2. <步骤2>
+3. ...
+
+## 技术要求
+- <技术规范1>
+- <技术规范2>
+
+## 文件位置
+- 源代码: `vibehub/src/<module>/`
+- 测试文件: `vibehub/tests/test_<module>.py`
+
+## 验收标准
+- [ ] 功能实现完成
+- [ ] 单元测试通过，覆盖率 ≥ 80%
+- [ ] 代码通过 ruff check 和 mypy 检查
+- [ ] 中文 Git 提交信息
+```
+
+### 3.6 MCP 工具调用示例
+
+```python
+# 1. 列出项目
+mcp__vibe_kanban__list_projects()
+
+# 2. 创建任务（包含详细描述）
+mcp__vibe_kanban__create_task(
+    project_id="3f101d13-0e36-4097-af11-e54734fc2694",
+    title="实现能量计算核心模块",
+    description="""
+## 目标
+实现基于编码时长、质量、心流状态的 Vibe 能量计算算法。
+
+## 背景
+Happy Vibe 游戏的核心机制是将真实的 Vibe-Coding 活动转化为游戏内能量。
+能量计算需要考虑：编码时长、代码质量、心流状态等因素。
+
+## 实现步骤
+1. 创建 `vibehub/src/core/` 目录
+2. 实现 `energy_calculator.py` 能量计算器类
+3. 实现 `flow_detector.py` 心流状态检测
+4. 实现 `quality_scorer.py` 质量评分器
+5. 编写完整的单元测试
+
+## 技术要求
+- 使用 Python 类型注解
+- 编写 Google 风格文档字符串
+- 遵循项目代码规范 (ruff)
+
+## 文件位置
+- 源代码: `vibehub/src/core/`
+- 测试文件: `vibehub/tests/test_energy_calculator.py`
+
+## 验收标准
+- [ ] EnergyCalculator 类实现完成
+- [ ] 支持基础能量、时间加成、质量加成、心流加成计算
+- [ ] 单元测试覆盖率 ≥ 80%
+- [ ] 代码通过 ruff check 和 mypy 检查
+"""
+)
+
+# 3. 列出仓库（获取 repo_id）
+mcp__vibe_kanban__list_repos(project_id="3f101d13-0e36-4097-af11-e54734fc2694")
+
+# 4. 配置 setup script（云端环境初始化）
+mcp__vibe_kanban__update_setup_script(
+    repo_id="e38a6122-023a-4e30-bbf5-b9499c2d3a8c",
+    script="cd vibehub && uv venv && uv pip install -e '.[dev]'"
+)
+
+# 5. 启动云端工作空间（可并行启动多个）
+mcp__vibe_kanban__start_workspace_session(
+    task_id="<task_id>",
+    executor="CLAUDE_CODE",
+    repos=[{"repo_id": "e38a6122-023a-4e30-bbf5-b9499c2d3a8c", "base_branch": "main"}]
+)
+
+# 6. 查看任务状态
+mcp__vibe_kanban__list_tasks(project_id="3f101d13-0e36-4097-af11-e54734fc2694")
+
+# 7. 获取任务详情
+mcp__vibe_kanban__get_task(task_id="<task_id>")
+
+# 8. 更新任务状态
+mcp__vibe_kanban__update_task(task_id="<task_id>", status="done")
+```
+
+### 3.7 注意事项
+
+1. **不要重复创建任务**: vibe-kanban 云端任务和本地开发是不同的，不要同时进行
+2. **任务描述要详细**: 云端工作空间是独立的，需要完整的上下文
+3. **配置 setup script**: 云端需要知道如何安装依赖
+4. **合并后审查**: 任务完成合并到 main 后，必须进行代码审查
+5. **避免冲突**: 并行任务应该修改不同的文件，避免合并冲突
+
+### 3.8 任务拆分原则
 
 ```
 可并行任务（无依赖）:
@@ -122,40 +247,6 @@ powershell -Command "cd 'B:\study\AI\Happy-Vibe\vibehub'; uv pip install -e '.[d
 ├── 网络通信模块 → 依赖 API 端点
 └── 桌面监控器 → 依赖 API 端点
 ```
-
-### 3.5 MCP 工具调用示例
-
-```python
-# 列出任务
-mcp__vibe_kanban__list_tasks(project_id="3f101d13-0e36-4097-af11-e54734fc2694")
-
-# 创建任务
-mcp__vibe_kanban__create_task(
-    project_id="3f101d13-0e36-4097-af11-e54734fc2694",
-    title="实现能量计算核心模块",
-    description="实现基于编码时长、质量、心流状态的能量计算算法"
-)
-
-# 列出仓库（获取 repo_id）
-mcp__vibe_kanban__list_repos(project_id="3f101d13-0e36-4097-af11-e54734fc2694")
-
-# 启动任务 workspace 会话
-mcp__vibe_kanban__start_workspace_session(
-    task_id="<task_id>",
-    executor="CLAUDE_CODE",
-    repos=[{"repo_id": "e38a6122-023a-4e30-bbf5-b9499c2d3a8c", "base_branch": "main"}]
-)
-
-# 更新任务状态
-mcp__vibe_kanban__update_task(task_id="<task_id>", status="inprogress")
-mcp__vibe_kanban__update_task(task_id="<task_id>", status="done")
-```
-
-### 3.6 仓库信息
-
-- 仓库名称: `Happy-Vibe`
-- 仓库ID: `e38a6122-023a-4e30-bbf5-b9499c2d3a8c`
-- 基础分支: `main`
 
 ---
 
