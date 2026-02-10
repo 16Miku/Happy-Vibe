@@ -136,10 +136,26 @@ mcp__vibe_kanban__create_task(
     description="实现基于编码时长、质量、心流状态的能量计算算法"
 )
 
+# 列出仓库（获取 repo_id）
+mcp__vibe_kanban__list_repos(project_id="3f101d13-0e36-4097-af11-e54734fc2694")
+
+# 启动任务 workspace 会话
+mcp__vibe_kanban__start_workspace_session(
+    task_id="<task_id>",
+    executor="CLAUDE_CODE",
+    repos=[{"repo_id": "e38a6122-023a-4e30-bbf5-b9499c2d3a8c", "base_branch": "main"}]
+)
+
 # 更新任务状态
 mcp__vibe_kanban__update_task(task_id="<task_id>", status="inprogress")
 mcp__vibe_kanban__update_task(task_id="<task_id>", status="done")
 ```
+
+### 3.6 仓库信息
+
+- 仓库名称: `Happy-Vibe`
+- 仓库ID: `e38a6122-023a-4e30-bbf5-b9499c2d3a8c`
+- 基础分支: `main`
 
 ---
 
