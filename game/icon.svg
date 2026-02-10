@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="vibe_gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#9b59b6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3498db;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- 背景圆形 -->
+  <circle cx="64" cy="64" r="60" fill="url(#vibe_gradient)"/>
+  <!-- 代码符号 < /> -->
+  <text x="64" y="75" font-family="monospace" font-size="36" font-weight="bold" fill="white" text-anchor="middle">&lt;/&gt;</text>
+  <!-- 心形能量波纹 -->
+  <path d="M64 90 C50 78 38 68 38 56 C38 46 46 40 56 40 C60 40 64 44 64 44 C64 44 68 40 72 40 C82 40 90 46 90 56 C90 68 78 78 64 90" fill="none" stroke="white" stroke-width="2" opacity="0.6"/>
+</svg>

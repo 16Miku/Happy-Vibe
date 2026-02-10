@@ -1,0 +1,29 @@
+[gd_scene load_steps=2 format=3 uid="uid://game_world"]
+
+[ext_resource type="Script" path="res://scripts/core/game_world.gd" id="1_game_world"]
+
+[node name="GameWorld" type="Node2D"]
+script = ExtResource("1_game_world")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(640, 360)
+zoom = Vector2(1, 1)
+
+[node name="TileMap" type="TileMap" parent="."]
+
+[node name="Player" type="CharacterBody2D" parent="."]
+position = Vector2(640, 360)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
+
+[node name="Sprite2D" type="Sprite2D" parent="Player"]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="HUD" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
