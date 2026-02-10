@@ -1,45 +1,203 @@
+## event_bus.gd
+## 全局事件总线 - 用于解耦各系统之间的通信
+## 作为 AutoLoad 单例运行
 extends Node
-## 事件总线 - 全局单例
-## 用于解耦的事件通信系统
 
-# 编码活动相关信号
-signal coding_started(source: String)
-signal coding_ended(duration: float, energy_earned: int)
-signal flow_state_entered()
-signal flow_state_exited(duration: float)
+# ==================== 玩家相关信号 ====================
 
-# 农场相关信号
+## 能量更新
+signal energy_updated(current: int, max_energy: int)
+
+## 金币更新
+signal gold_updated(amount: int)
+
+## 钻石更新
+signal diamonds_updated(amount: int)
+
+## 玩家升级
+signal player_leveled_up(new_level: int)
+
+## 玩家数据加载完成
+signal player_data_ready()
+
+# ==================== Vibe-Coding 相关信号 ====================
+
+## 从 VibeHub 接收到能量
+signal vibe_energy_received(energy: int, exp: int, is_flow: bool)
+
+## 进入心流状态
+signal flow_state_achieved()
+
+## 退出心流状态
+signal flow_state_ended(duration_minutes: int)
+
+## 编码会话开始
+signal coding_session_started()
+
+## 编码会话结束
+signal coding_session_ended(duration_minutes: int, energy_earned: int)
+
+# ==================== 农场相关信号 ====================
+
+## 作物种植
 signal crop_planted(plot_id: String, crop_type: String)
-signal crop_harvested(plot_id: String, crop_data: Dictionary)
+
+## 作物成熟
 signal crop_ready(plot_id: String)
 
-# 建造相关信号
+## 作物收获
+signal crop_harvested(plot_id: String, crop_data: Dictionary)
+
+## 地块浇水
+signal plot_watered(plot_id: int)
+
+## 地块施肥
+signal plot_fertilized(plot_id: int)
+
+# ==================== 建筑相关信号 ====================
+
+## 建筑放置
 signal building_placed(building_type: String, position: Vector2)
+
+## 建筑开始建造
+signal building_started(building_id: int, building_type: String)
+
+## 建筑完成
+signal building_completed(building_id: int, building_type: String)
+
+## 建筑升级
 signal building_upgraded(building_id: String, new_level: int)
 
-# 成就相关信号
-signal achievement_unlocked(achievement_id: String)
-signal achievement_progress(achievement_id: String, progress: int, target: int)
+# ==================== 库存相关信号 ====================
 
-# UI 相关信号
+## 物品添加
+signal item_added(item_id: String, quantity: int)
+
+## 物品移除
+signal item_removed(item_id: String, quantity: int)
+
+## 物品使用
+signal item_used(item_id: String)
+
+## 库存已满
+signal inventory_full()
+
+# ==================== 成就相关信号 ====================
+
+## 成就解锁
+signal achievement_unlocked(achievement_id: String)
+
+## 成就进度更新
+signal achievement_progress(achievement_id: String, current: int, target: int)
+
+## 称号获得
+signal title_earned(title_id: String)
+
+# ==================== UI 相关信号 ====================
+
+## 显示通知
 signal show_notification(message: String, type: String)
+
+## 显示弹窗
 signal show_popup(title: String, content: String)
 
-# 游戏状态信号
+## 显示奖励弹窗
+signal show_reward_popup(rewards: Dictionary)
+
+## 显示确认对话框
+signal show_confirm_dialog(title: String, message: String, callback: Callable)
+
+## 打开界面
+signal open_panel(panel_name: String)
+
+## 关闭界面
+signal close_panel(panel_name: String)
+
+# ==================== 游戏状态相关信号 ====================
+
+## 游戏暂停
 signal game_paused()
+
+## 游戏恢复
 signal game_resumed()
+
+## 游戏保存
+signal game_saved()
+
+## 游戏加载
+signal game_loaded()
+
+## 新的一天开始（游戏内时间）
+signal new_day_started(day: int)
+
+## 日期变化
 signal day_changed(new_day: int)
+
+# ==================== 社交相关信号（预留） ====================
+
+## 好友上线
+signal friend_online(friend_id: String)
+
+## 好友离线
+signal friend_offline(friend_id: String)
+
+## 收到好友请求
+signal friend_request_received(from_id: String, from_name: String)
+
+## 收到礼物
+signal gift_received(from_id: String, item_id: String)
+
+# ==================== 网络相关信号 ====================
+
+## 连接到 VibeHub
+signal vibehub_connected()
+
+## 与 VibeHub 断开连接
+signal vibehub_disconnected()
+
+## VibeHub 数据同步完成
+signal vibehub_synced()
+
+## 网络错误
+signal network_error(error_message: String)
 
 
 func _ready() -> void:
 	pass
 
 
+# ==================== 工具方法 ====================
+
 ## 发送通知的便捷方法
 func notify(message: String, type: String = "info") -> void:
 	show_notification.emit(message, type)
 
 
+## 发送成功通知
+func notify_success(message: String) -> void:
+	notify(message, "success")
+
+
+## 发送警告通知
+func notify_warning(message: String) -> void:
+	notify(message, "warning")
+
+
+## 发送错误通知
+func notify_error(message: String) -> void:
+	notify(message, "error")
+
+
 ## 发送弹窗的便捷方法
 func popup(title: String, content: String) -> void:
 	show_popup.emit(title, content)
+
+
+## 显示奖励
+func show_rewards(rewards: Dictionary) -> void:
+	show_reward_popup.emit(rewards)
+
+
+## 请求确认
+func request_confirm(title: String, message: String, callback: Callable) -> void:
+	show_confirm_dialog.emit(title, message, callback)
