@@ -85,3 +85,5 @@ secrets.json
 node_modules/
 *.min.js
 *.min.css
+vibehub/src/vibehub.egg-info/
+vibehub/data/
