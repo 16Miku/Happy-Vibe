@@ -28,6 +28,9 @@ var current_state: GameState = GameState.MENU
 var player_data: Dictionary = {}
 var is_initialized := false
 
+# VibeClient 引用
+var vibe_client: Node = null
+
 # 常量配置
 const BASE_EXP_MULTIPLIER: float = 100.0
 const EXP_GROWTH_RATE: float = 0.1
@@ -39,6 +42,7 @@ const ENERGY_PER_LEVEL: int = 100
 func _ready() -> void:
 	load_player_data()
 	is_initialized = true
+	_setup_vibe_client()
 
 
 ## 加载玩家数据
@@ -349,16 +353,76 @@ func record_flow_time(minutes: int) -> void:
 	update_stat("total_flow_time", minutes)
 
 
-# ==================== 事件处理 ====================
+# ==================== VibeClient 集成 ====================
 
-## 处理从 VibeHub 接收到的能量
-func _on_vibe_energy_received(energy: int, exp: int, is_flow: bool) -> void:
+## 初始化 VibeClient
+func _setup_vibe_client() -> void:
+	# 查找 VibeClient 节点
+	vibe_client = get_node_or_null("/root/VibeClient")
+
+	if vibe_client:
+		print("[GameManager] VibeClient 已找到，开始连接")
+		# 连接信号
+		vibe_client.connection_status_changed.connect(_on_vibe_connection_changed)
+		vibe_client.player_data_received.connect(_on_vibe_player_data)
+		vibe_client.energy_received.connect(_on_vibe_energy_received)
+		vibe_client.flow_state_changed.connect(_on_vibe_flow_state_changed)
+		vibe_client.farm_data_received.connect(_on_vibe_farm_data)
+		vibe_client.achievements_received.connect(_on_vibe_achievements)
+	else:
+		print("[GameManager] VibeClient 未找到，将使用本地存档")
+
+
+## VibeClient 连接状态变化
+func _on_vibe_connection_changed(connected: bool) -> void:
+	if connected:
+		print("[GameManager] 已连接到 VibeHub")
+		# 连接成功后同步玩家数据
+		vibe_client.call("get_player")
+	else:
+		print("[GameManager] VibeHub 连接断开")
+
+
+## VibeClient 玩家数据接收
+func _on_vibe_player_data(data: Dictionary) -> void:
+	print("[GameManager] 从 VibeHub 接收玩家数据")
+	# 更新玩家数据
+	player_data = data.duplicate(true)
+	player_data_loaded.emit()
+
+
+## VibeClient 能量接收
+func _on_vibe_energy_received(energy: int, breakdown: Dictionary) -> void:
+	print("[GameManager] 收到能量: ", energy, " 细分: ", breakdown)
 	add_energy(energy)
-	add_exp(exp)
 
+
+## VibeClient 心流状态变化
+func _on_vibe_flow_state_changed(is_flow: bool) -> void:
+	print("[GameManager] 心流状态: ", "进入" if is_flow else "退出")
 	if is_flow:
-		if EventBus:
-			EventBus.emit_signal("flow_state_achieved")
+		EventBus.flow_state_entered.emit()
+
+
+## VibeClient 农场数据接收
+func _on_vibe_farm_data(data: Dictionary) -> void:
+	print("[GameManager] 收到农场数据")
+	# 更新农场数据
+	player_data["farm"] = data.duplicate(true)
+
+
+## VibeClient 成就数据接收
+func _on_vibe_achievements(achievements: Array) -> void:
+	print("[GameManager] 收到成就数据: ", achievements.size(), " 个")
+	player_data["achievements"] = achievements.duplicate(true)
+
+
+## 同步玩家数据到 VibeHub
+func sync_to_vibe() -> void:
+	if vibe_client and vibe_client.has_method("update_player"):
+		vibe_client.call("update_player", player_data.duplicate(true))
+	else:
+		print("[GameManager] VibeClient 不可用，无法同步数据")
 
 
 # ==================== 工具方法 ====================

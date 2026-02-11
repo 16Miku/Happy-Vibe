@@ -13,12 +13,12 @@ from src.config.settings import settings
 async def lifespan(app: FastAPI):
     """应用生命周期管理"""
     # 启动时执行
-    print("🚀 Happy Vibe Hub 启动中...")
-    print(f"📝 版本: {settings.VERSION}")
-    print(f"🌢 服务地址: http://{settings.HOST}:{settings.PORT}")
+    print("[VibeHub] Happy Vibe Hub starting...")
+    print(f"[VibeHub] Version: {settings.VERSION}")
+    print(f"[VibeHub] Server: http://{settings.HOST}:{settings.PORT}")
     yield
     # 关闭时执行
-    print("👋 Happy Vibe Hub 已关闭")
+    print("[VibeHub] Happy Vibe Hub closed")
 
 
 def create_app() -> FastAPI:

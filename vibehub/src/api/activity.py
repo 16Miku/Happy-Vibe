@@ -56,7 +56,7 @@ class QualityMetricsSchema(BaseModel):
 class StartActivityRequest(BaseModel):
     """开始活动请求"""
 
-    player_id: str = Field(..., description="玩家ID")
+    player_id: str = Field(default="default", description="玩家ID")
     source: str = Field(default="claude_code", description="数据来源")
 
 
@@ -252,28 +252,37 @@ async def start_activity(
 
     创建新的活动会话，开始记录编码活动。
     """
-    # 检查玩家是否存在
-    player = db_session.query(Player).filter_by(player_id=request.player_id).first()
+    # 获取玩家ID（可选，不传则使用默认）
+    player_id = request.player_id if request.player_id else "default"
+
+    # 检查玩家是否存在，不存在则创建
+    player = db_session.query(Player).filter_by(player_id=player_id).first()
     if not player:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"玩家不存在: {request.player_id}",
+        # 自动创建默认玩家
+        player = Player(
+            player_id=player_id,
+            username="DefaultPlayer",
+            vibe_energy=100,
+            max_vibe_energy=1000,
+            gold=500,
         )
+        db_session.add(player)
+        db_session.commit()
 
     # 检查是否已有活动会话
-    for session_id, session_data in _active_sessions.items():
-        if session_data["player_id"] == request.player_id:
+    for existing_session_id, session_data in _active_sessions.items():
+        if session_data["player_id"] == player_id:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=f"玩家已有活动会话: {session_id}",
+                detail=f"玩家已有活动会话: {existing_session_id}",
             )
 
     # 创建新会话
-    session_id = str(uuid.uuid4())
+    new_session_id = str(uuid.uuid4())
     started_at = datetime.utcnow()
 
-    _active_sessions[session_id] = {
-        "player_id": request.player_id,
+    _active_sessions[new_session_id] = {
+        "player_id": player_id,
         "source": request.source,
         "started_at": started_at,
         "quality": QualityMetrics(),
@@ -282,7 +291,7 @@ async def start_activity(
     }
 
     return StartActivityResponse(
-        session_id=session_id,
+        session_id=new_session_id,
         started_at=started_at,
         message="活动追踪已开始",
     )
@@ -516,6 +525,7 @@ async def get_current_activity(player_id: str) -> CurrentActivityResponse:
                 estimated_energy=estimated_energy,
             )
 
+    # 没有找到活动会话
     return CurrentActivityResponse(
         has_active_session=False,
         duration_minutes=0,
