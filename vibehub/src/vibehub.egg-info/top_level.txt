@@ -1,8 +1,0 @@
-__init__
-adapters
-api
-config
-core
-main
-storage
-utils
