@@ -159,12 +159,15 @@ vibe-kanban MCP 是一个任务管理系统，支持启动独立的 Claude Code 
 ### 3.6 MCP 工具调用示例
 
 ```python
-# 1. 列出项目
-mcp__vibe_kanban__list_projects()
+# 1. 列出组织
+mcp__vibe_kanban__list_organizations()
 
-# 2. 创建任务（包含详细描述）
-mcp__vibe_kanban__create_task(
-    project_id="3f101d13-0e36-4097-af11-e54734fc2694",
+# 2. 列出项目
+mcp__vibe_kanban__list_projects(organization_id="06b32dcb-1bf1-41f9-934e-6b1b1b9f8360")
+
+# 3. 创建任务（包含详细描述）
+mcp__vibe_kanban__create_issue(
+    project_id="2b422040-034e-444d-a7bb-9243c049b494",
     title="实现能量计算核心模块",
     description="""
 ## 目标
@@ -198,30 +201,37 @@ Happy Vibe 游戏的核心机制是将真实的 Vibe-Coding 活动转化为游�
 """
 )
 
-# 3. 列出仓库（获取 repo_id）
-mcp__vibe_kanban__list_repos(project_id="3f101d13-0e36-4097-af11-e54734fc2694")
+# 4. 列出仓库（获取 repo_id）
+mcp__vibe_kanban__list_repos()
 
-# 4. 配置 setup script（云端环境初始化）
+# 5. 配置 setup script（云端环境初始化）
 mcp__vibe_kanban__update_setup_script(
     repo_id="e38a6122-023a-4e30-bbf5-b9499c2d3a8c",
     script="cd vibehub && uv venv && uv pip install -e '.[dev]'"
 )
 
-# 5. 启动云端工作空间（可并行启动多个）
+# 6. 启动工作空间（包含 issue_id 参数，重要！）
 mcp__vibe_kanban__start_workspace_session(
-    task_id="<task_id>",
+    issue_id="<issue_id>",  # ← 关键参数！必须包含 issue_id
+    title="任务标题",
     executor="CLAUDE_CODE",
     repos=[{"repo_id": "e38a6122-023a-4e30-bbf5-b9499c2d3a8c", "base_branch": "main"}]
 )
 
-# 6. 查看任务状态
-mcp__vibe_kanban__list_tasks(project_id="3f101d13-0e36-4097-af11-e54734fc2694")
+# 7. 列出任务
+mcp__vibe_kanban__list_issues(project_id="2b422040-034e-444d-a7bb-9243c049b494")
 
-# 7. 获取任务详情
-mcp__vibe_kanban__get_task(task_id="<task_id>")
+# 8. 获取任务详情
+mcp__vibe_kanban__get_issue(issue_id="<issue_id>")
 
-# 8. 更新任务状态
-mcp__vibe_kanban__update_task(task_id="<task_id>", status="done")
+# 9. 更新任务状态
+mcp__vibe_kanban__update_issue(issue_id="<issue_id>", status="done")
+
+# 10. 链接工作空间到任务（可选）
+mcp__vibe_kanban__link_workspace(
+    workspace_id="<workspace_id>",
+    issue_id="<issue_id>"
+)
 ```
 
 ### 3.7 注意事项
