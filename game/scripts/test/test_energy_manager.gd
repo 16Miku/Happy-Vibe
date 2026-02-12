@@ -1,174 +1,320 @@
-extends Control
-## EnergyManager 能量管理器测试场景
+extends Node
+## EnergyManager 功能测试脚本
 
-var logs: Array[String] = []
+var energy_manager: Node
+var vibe_client: Node
+var test_passed: int = 0
+var test_failed: int = 0
+var test_results: Array = []
+
 
 func _ready() -> void:
-	"""初始化测试场景"""
-	_log("测试场景已加载")
-	_setup_buttons()
+	print("[TestEnergyManager] ========== 能量管理器测试开始 ==========")
+	_setup_environment()
+	_run_all_tests()
+	_print_summary()
 
-	# 等待 EnergyManager 初始化
+
+func _setup_environment() -> void:
+	"""设置测试环境"""
+	print("[TestEnergyManager] 设置测试环境...")
+
+	# 确保 GameManager 存在
+	if not GameManager:
+		_create_mock_game_manager()
+
+	# 创建 EnergyManager
+	energy_manager = load("res://scripts/player/energy_manager.gd").new()
+	add_child(energy_manager)
 	await get_tree().process_frame
-	_setup_energy_manager_signals()
-	_update_display()
-	_log("EnergyManager 测试场景已就绪")
+
+	# 连接信号
+	energy_manager.energy_manager = energy_manager  # 确保变量名一致
+	energy_manager.energy_changed.connect(_on_energy_changed)
+	energy_manager.energy_insufficient.connect(_on_energy_insufficient)
+	energy_manager.energy_recovered.connect(_on_energy_recovered)
+	energy_manager.flow_state_changed.connect(_on_flow_state_changed)
+
+	print("[TestEnergyManager] 能量管理器已创建")
 
 
-## 设置按钮连接
-func _setup_buttons() -> void:
-	"""设置按钮点击事件"""
-	$VBoxContainer/Add100Btn.pressed.connect(func(): _test_add_energy(100))
-	$VBoxContainer/Add50Btn.pressed.connect(func(): _test_add_energy(50))
-	$VBoxContainer/Add10Btn.pressed.connect(func(): _test_add_energy(10))
-	$VBoxContainer/Consume100Btn.pressed.connect(func(): _test_consume_energy(100))
-	$VBoxContainer/Consume50Btn.pressed.connect(func(): _test_consume_energy(50))
-	$VBoxContainer/Consume10Btn.pressed.connect(func(): _test_consume_energy(10))
-	$VBoxContainer/RegenBtn.pressed.connect(_test_regen_energy)
-	$VBoxContainer/ResetBtn.pressed.connect(_test_reset_energy)
-	$VBoxContainer/DebugBtn.pressed.connect(_test_debug_info)
+func _create_mock_game_manager() -> void:
+	"""创建模拟的 GameManager（如果不存在）"""
+	print("[TestEnergyManager] 创建模拟 GameManager...")
+	var mock_game_manager = Node.new()
+	mock_game_manager.name = "GameManager"
+	mock_game_manager.set_script(preload("res://scripts/core/game_manager.gd"))
+	get_tree().root.add_child(mock_game_manager)
+	print("[TestEnergyManager] 模拟 GameManager 已创建")
 
 
-## 设置 EnergyManager 信号
-func _setup_energy_manager_signals() -> void:
-	"""连接 EnergyManager 信号"""
-	if EnergyManager:
-		EnergyManager.energy_changed.connect(_on_energy_changed)
-		EnergyManager.energy_awarded.connect(_on_energy_awarded)
-		EnergyManager.energy_consumed.connect(_on_energy_consumed)
-		EnergyManager.energy_max_reached.connect(_on_energy_max_reached)
-		EnergyManager.energy_depleted.connect(_on_energy_depleted)
-		EnergyManager.energy_regened.connect(_on_energy_regened)
-		_log("EnergyManager 信号已连接")
-	else:
-		_log("错误：EnergyManager 未加载！")
+func _run_all_tests() -> void:
+	"""运行所有测试"""
+	print("[TestEnergyManager] ========== 开始测试用例 ==========")
+
+	await test_initial_energy()
+	await test_add_energy()
+	await test_spend_energy()
+	await test_energy_insufficient()
+	await test_flow_state()
+	await test_flow_bonus()
+	await test_max_energy()
+	await test_energy_percentage()
+	await test_set_energy()
+	await test_debug_info()
+
+	print("[TestEnergyManager] ========== 所有测试完成 ==========")
 
 
-## 测试添加能量
-func _test_add_energy(amount: int) -> void:
+# ==================== 测试用例 ====================
+
+func test_initial_energy() -> void:
+	"""测试初始能量"""
+	print("[TestEnergyManager] 测试: 初始能量...")
+	var initial: int = energy_manager.get_current_energy()
+	var max_energy: int = energy_manager.get_max_energy()
+
+	assert initial > 0, "初始能量应大于 0"
+	assert max_energy > 0, "最大能量应大于 0"
+	assert initial <= max_energy, "初始能量不应超过最大能量"
+
+	_record_test_passed("初始能量", "初始能量: %d/%d" % [initial, max_energy])
+
+
+func test_add_energy() -> void:
 	"""测试添加能量"""
-	_log("尝试添加 %d 能量..." % amount)
-	if EnergyManager:
-		var success: bool = EnergyManager.add_energy(amount, "test")
-		if success:
-			_log("  ✓ 添加成功")
-		else:
-			_log("  ✗ 添加失败")
-		_update_display()
+	print("[TestEnergyManager] 测试: 添加能量...")
+	var old_energy: int = energy_manager.get_current_energy()
+	var add_amount: int = 100
+
+	var success: bool = energy_manager.add_energy(add_amount, "test")
+	await get_tree().process_frame
+
+	var new_energy: int = energy_manager.get_current_energy()
+	var expected: int = mini(old_energy + add_amount, energy_manager.get_max_energy())
+
+	assert success, "添加能量应成功"
+	assert new_energy == expected, "能量应正确增加"
+
+	_record_test_passed("添加能量", "能量: %d -> %d" % [old_energy, new_energy])
 
 
-## 测试消耗能量
-func _test_consume_energy(amount: int) -> void:
+func test_spend_energy() -> void:
 	"""测试消耗能量"""
-	_log("尝试消耗 %d 能量..." % amount)
-	if EnergyManager:
-		var can_afford: bool = EnergyManager.can_afford(amount)
-		if not can_afford:
-			_log("  ⚠ 能量不足！")
-			return
+	print("[TestEnergyManager] 测试: 消耗能量...")
 
-		var success: bool = EnergyManager.consume_energy(amount, "test")
-		if success:
-			_log("  ✓ 消耗成功")
-		else:
-			_log("  ✗ 消耗失败")
-		_update_display()
+	# 确保有足够的能量
+	energy_manager.add_energy(500, "test_preload")
+	await get_tree().process_frame
 
+	var old_energy: int = energy_manager.get_current_energy()
+	var spend_amount: int = 50
 
-## 测试恢复能量
-func _test_regen_energy() -> void:
-	"""测试能量恢复"""
-	_log("尝试恢复能量...")
-	if EnergyManager:
-		EnergyManager.regen_energy()
-		_log("  ✓ 恢复调用成功")
-		_update_display()
+	var success: bool = energy_manager.spend_energy(spend_amount, "test")
+	await get_tree().process_frame
+
+	var new_energy: int = energy_manager.get_current_energy()
+	var expected: int = old_energy - spend_amount
+
+	assert success, "消耗能量应成功"
+	assert new_energy == expected, "能量应正确减少"
+
+	_record_test_passed("消耗能量", "能量: %d -> %d" % [old_energy, new_energy])
 
 
-## 测试重置能量
-func _test_reset_energy() -> void:
-	"""测试重置能量"""
-	_log("重置能量为最大值...")
-	if EnergyManager:
-		EnergyManager.debug_reset_energy()
-		_log("  ✓ 重置成功")
-		_update_display()
+func test_energy_insufficient() -> void:
+	"""测试能量不足情况"""
+	print("[TestEnergyManager] 测试: 能量不足...")
+
+	# 尝试消耗超过当前能量的数量
+	var current_energy: int = energy_manager.get_current_energy()
+	var excess_amount: int = current_energy + 1000
+
+	var success: bool = energy_manager.spend_energy(excess_amount, "test_excess")
+	await get_tree().process_frame
+
+	var new_energy: int = energy_manager.get_current_energy()
+
+	assert not success, "消耗超过当前能量的数量应失败"
+	assert new_energy == current_energy, "能量不足时能量不应变化"
+
+	_record_test_passed("能量不足", "正确拒绝超额消耗请求")
 
 
-## 测试调试信息
-func _test_debug_info() -> void:
+func test_flow_state() -> void:
+	"""测试心流状态"""
+	print("[TestEnergyManager] 测试: 心流状态...")
+
+	# 设置心流状态
+	energy_manager.set_flow_state(true)
+	await get_tree().process_frame
+
+	assert energy_manager.is_in_flow(), "应处于心流状态"
+
+	# 退出心流状态
+	energy_manager.set_flow_state(false)
+	await get_tree().process_frame
+
+	assert not energy_manager.is_in_flow(), "应不处于心流状态"
+
+	_record_test_passed("心流状态", "心流状态切换正常")
+
+
+func test_flow_bonus() -> void:
+	"""测试心流加成"""
+	print("[TestEnergyManager] 测试: 心流加成...")
+
+	# 正常状态倍率
+	energy_manager.set_flow_state(false)
+	await get_tree().process_frame
+	var normal_multiplier: float = energy_manager.get_flow_bonus_multiplier()
+	assert normal_multiplier == 1.0, "正常状态倍率应为 1.0"
+
+	# 心流状态倍率
+	energy_manager.set_flow_state(true)
+	await get_tree().process_frame
+	var flow_multiplier: float = energy_manager.get_flow_bonus_multiplier()
+	assert flow_multiplier == 2.0, "心流状态倍率应为 2.0"
+
+	# 恢复正常状态
+	energy_manager.set_flow_state(false)
+	await get_tree().process_frame
+
+	_record_test_passed("心流加成", "正常: %.1fx, 心流: %.1fx" % [normal_multiplier, flow_multiplier])
+
+
+func test_max_energy() -> void:
+	"""测试最大能量"""
+	print("[TestEnergyManager] 测试: 最大能量...")
+
+	var max_energy: int = energy_manager.get_max_energy()
+	assert max_energy > 0, "最大能量应大于 0"
+
+	# 测试等级影响
+	energy_manager.update_max_energy(5)
+	await get_tree().process_frame
+	var new_max_energy: int = energy_manager.get_max_energy()
+	assert new_max_energy > max_energy, "升级后最大能量应增加"
+
+	_record_test_passed("最大能量", "等级1: %d, 等级5: %d" % [max_energy, new_max_energy])
+
+
+func test_energy_percentage() -> void:
+	"""测试能量百分比"""
+	print("[TestEnergyManager] 测试: 能量百分比...")
+
+	# 设置一个明确的能量值
+	energy_manager.set_energy(500)
+	await get_tree().process_frame
+
+	var percentage: float = energy_manager.get_energy_percentage()
+	assert percentage >= 0.0 and percentage <= 1.0, "百分比应在 0.0 到 1.0 之间"
+
+	# 满能量测试
+	energy_manager.set_energy(energy_manager.get_max_energy())
+	await get_tree().process_frame
+	var full_percentage: float = energy_manager.get_energy_percentage()
+	assert full_percentage == 1.0, "满能量百分比应为 1.0"
+
+	_record_test_passed("能量百分比", "百分比: %.2f, 满能量: %.2f" % [percentage, full_percentage])
+
+
+func test_set_energy() -> void:
+	"""测试直接设置能量"""
+	print("[TestEnergyManager] 测试: 直接设置能量...")
+
+	energy_manager.set_energy(750)
+	await get_tree().process_frame
+	var current = energy_manager.get_current_energy()
+	assert current == 750, "能量应设置为指定值"
+
+	# 测试边界值
+	energy_manager.set_energy(-100)
+	await get_tree().process_frame
+	assert energy_manager.get_current_energy() >= 0, "能量不应为负数"
+
+	var max_energy: int = energy_manager.get_max_energy()
+	energy_manager.set_energy(max_energy + 1000)
+	await get_tree().process_frame
+	assert energy_manager.get_current_energy() <= max_energy, "能量不应超过最大值"
+
+	_record_test_passed("直接设置能量", "能量设置和边界检查正常")
+
+
+func test_debug_info() -> void:
 	"""测试调试信息"""
-	if EnergyManager:
-		_log("调试信息：")
-		_log("  当前能量: %d" % EnergyManager.get_energy())
-		_log("  最大能量: %d" % EnergyManager.get_max_energy())
-		_log("  能量百分比: %.2f%%" % (EnergyManager.get_energy_percentage() * 100))
+	print("[TestEnergyManager] 测试: 调试信息...")
+
+	var info: Dictionary = energy_manager.get_debug_info()
+	assert info.has("current_energy"), "应包含当前能量"
+	assert info.has("max_energy"), "应包含最大能量"
+	assert info.has("is_in_flow"), "应包含心流状态"
+	assert info.has("flow_bonus_multiplier"), "应包含心流加成倍率"
+
+	_record_test_passed("调试信息", "调试信息完整")
 
 
-## 能量变化信号处理
-func _on_energy_changed(new_value: int, old_value: int) -> void:
-	"""能量变化信号"""
-	_log("能量变化: %d → %d (差值: %+d)" % [old_value, new_value, new_value - old_value])
-	_update_display()
+# ==================== 信号回调 ====================
+
+func _on_energy_changed(current: int, max_energy: int) -> void:
+	print("[TestEnergyManager] 信号: energy_changed(%d, %d)" % [current, max_energy])
 
 
-## 能量奖励信号处理
-func _on_energy_awarded(amount: int, source: String) -> void:
-	"""能量奖励信号"""
-	_log("能量奖励: +%d (来源: %s)" % [amount, source])
+func _on_energy_insufficient(required: int, current: int) -> void:
+	print("[TestEnergyManager] 信号: energy_insufficient(需要: %d, 当前: %d)" % [required, current])
 
 
-## 能量消耗信号处理
-func _on_energy_consumed(amount: int, success: bool) -> void:
-	"""能量消耗信号"""
-	_log("能量消耗: %d (成功: %s)" % [amount, success])
+func _on_energy_recovered(amount: int) -> void:
+	print("[TestEnergyManager] 信号: energy_recovered(%d)" % amount)
 
 
-## 能量达到上限信号处理
-func _on_energy_max_reached() -> void:
-	"""能量达到上限信号"""
-	_log("⚡ 能量已达到上限！")
+func _on_flow_state_changed(is_flow: bool, bonus_multiplier: float) -> void:
+	print("[TestEnergyManager] 信号: flow_state_changed(%s, %.1fx)" % [
+		"是" if is_flow else "否", bonus_multiplier
+	])
 
 
-## 能量耗尽信号处理
-func _on_energy_depleted() -> void:
-	"""能量耗尽信号"""
-	_log("⚠ 能量已耗尽！")
+# ==================== 测试记录和总结 ====================
+
+func _record_test_passed(test_name: String, details: String = "") -> void:
+	"""记录测试通过"""
+	test_passed += 1
+	test_results.append({
+		"name": test_name,
+		"status": "passed",
+		"details": details
+	})
+	print("[TestEnergyManager] ✓ 通过: %s" % test_name)
+	if not details.is_empty():
+		print("    %s" % details)
 
 
-## 能量恢复信号处理
-func _on_energy_regened(amount: int) -> void:
-	"""能量恢复信号"""
-	_log("能量恢复: +%d" % amount)
+func _record_test_failed(test_name: String, reason: String) -> void:
+	"""记录测试失败"""
+	test_failed += 1
+	test_results.append({
+		"name": test_name,
+		"status": "failed",
+		"reason": reason
+	})
+	print("[TestEnergyManager] ✗ 失败: %s" % test_name)
+	print("    原因: %s" % reason)
 
 
-## 更新显示
-func _update_display() -> void:
-	"""更新能量显示"""
-	if EnergyManager:
-		var current: int = EnergyManager.get_energy()
-		var max_val: int = EnergyManager.get_max_energy()
-		var percentage: float = EnergyManager.get_energy_percentage() * 100.0
-		$VBoxContainer/EnergyDisplay.text = "能量: %d / %d (%.1f%%)" % [current, max_val, percentage]
+func _print_summary() -> void:
+	"""打印测试总结"""
+	print("\n[TestEnergyManager] ========== 测试总结 ==========")
+	print("总总测试数: %d" % (test_passed + test_failed))
+	print("通过: %d" % test_passed)
+	print("失败: %d" % test_failed)
+	print("通过率: %.1f%%" % (float(test_passed) / float(test_passed + test_failed) * 100.0))
 
+	if test_failed == 0:
+		print("\n[TestEnergyManager] 🎉 所有测试通过！")
+	else:
+		print("\n[TestEnergyManager] ⚠️  有测试失败，请检查错误信息")
 
-## 添加日志
-func _log(message: String) -> void:
-	"""添加日志消息"""
-	var timestamp = _get_timestamp()
-	var log_line: String = "[%s] %s" % [timestamp, message]
-	logs.append(log_line)
+	print("[TestEnergyManager] ==========================================")
 
-	# 保持最多 20 条日志
-	if logs.size() > 20:
-		logs.remove_at(0)
-
-	# 更新日志显示
-	$VBoxContainer/LogContainer/LogLabel.text = "\n".join(logs)
-
-
-## 获取时间戳
-func _get_timestamp() -> String:
-	"""获取当前时间戳"""
-	var datetime_dict = Time.get_datetime_dict_from_system()
-	return "%02d:%02d:%02d" % [datetime_dict.hour, datetime_dict.minute, datetime_dict.second]
+	# 退出游戏（可选）
+	# get_tree().quit()

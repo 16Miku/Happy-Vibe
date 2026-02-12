@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8n2j3k9m1pq1"]
+
+[ext_resource type="Script" path="res://scripts/test/test_energy_manager.gd" id="1_jxph8"]
+
+[node name="TestEnergyManager" type="Node"]
+script = ExtResource("1_jxph8")
