@@ -23,6 +23,7 @@ EventBus="*res://scripts/core/event_bus.gd"
 SaveManager="*res://scripts/core/save_manager.gd"
 GameManager="*res://scripts/core/game_manager.gd"
 VibeClient="*res://scripts/vibe/vibe_client.gd"
+EnergyManager="*res://scripts/energy/energy_manager.gd"
 
 [display]
 
