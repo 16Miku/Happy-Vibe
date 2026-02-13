@@ -1,0 +1,46 @@
+extends Node
+
+## 测试能量获取动画
+## 验证 HUD 能量奖励提示效果
+
+func _ready() -> void:
+	print("[Test] 能量获取动画测试场景已加载")
+	_setup_test_button()
+
+func _setup_test_button() -> void:
+	"""创建测试按钮"""
+	var button = Button.new()
+	button.text = "测试能量获取动画"
+	button.position = Vector2(100, 100)
+	button.pressed.connect(_on_test_button)
+	add_child(button)
+
+	# 创建提示标签
+	var hint = Label.new()
+	hint.text = "点击按钮测试能量获取动画效果"
+	hint.position = Vector2(100, 140)
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	add_child(hint)
+
+func _on_test_button() -> void:
+	"""测试按钮回调"""
+	print("[Test] 触发能量获取动画测试")
+
+	# 模拟能量奖励信号
+	if GameManager and GameManager.has_signal("energy_awarded"):
+		print("[Test] 发送 energy_awarded 信号：+100 能量")
+		GameManager.energy_awarded.emit(100, "test")
+	else:
+		print("[Test] 错误：GameManager 没有 energy_awarded 信号")
+		print("[Test] 可用信号：")
+		if GameManager.has_signal("energy_changed"):
+			print("  - energy_changed")
+		if GameManager.has_signal("exp_changed"):
+			print("  - exp_changed")
+		if GameManager.has_signal("level_up"):
+			print("  - level_up")
+
+func _input(event: InputEvent) -> void:
+	"""处理输入"""
+	if event.pressed and event.keycode == KEY_ESCAPE:
+		get_tree().quit()

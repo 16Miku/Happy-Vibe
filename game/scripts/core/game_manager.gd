@@ -13,6 +13,7 @@ enum GameState {
 
 # 信号定义
 signal energy_changed(current: int, max_energy: int)
+signal energy_awarded(amount: int, source: String)
 signal exp_changed(current: int, needed: int)
 signal level_up(new_level: int)
 signal gold_changed(amount: int)
@@ -149,6 +150,9 @@ func add_energy(amount: int) -> void:
 	player_data["stats"]["total_energy_earned"] = player_data["stats"].get("total_energy_earned", 0) + amount
 
 	energy_changed.emit(new_energy, max_energy)
+
+	# 发送能量奖励信号（用于HUD动画等）
+	energy_awarded.emit(amount, "system")
 
 	# 通知事件总线
 	if EventBus:
