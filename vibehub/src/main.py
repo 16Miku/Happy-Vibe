@@ -12,6 +12,7 @@ from src.api import (
     check_in_router,
     economy_router,
     energy_router,
+    event_router,
     farm_router,
     friends_router,
     guilds_router,
@@ -19,6 +20,7 @@ from src.api import (
     leaderboard_router,
     market_router,
     player_router,
+    quest_router,
     shop_router,
     websocket_router,
 )
@@ -84,6 +86,10 @@ def create_app() -> FastAPI:
     app.include_router(market_router)
     app.include_router(auction_router)
     app.include_router(economy_router)
+
+    # 注册路由 - 任务系统
+    app.include_router(quest_router)
+    app.include_router(event_router)
 
     return app
 

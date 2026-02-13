@@ -120,6 +120,44 @@ class FriendRequestStatus(str, Enum):
     REJECTED = "rejected"  # 已拒绝
 
 
+class QuestType(str, Enum):
+    """任务类型枚举"""
+
+    DAILY_CHECK_IN = "daily_check_in"  # 每日签到
+    CODING_TIME = "coding_time"  # 编码时长
+    SUBMIT_CROPS = "submit_crops"  # 提交作物
+    HARVEST_CROPS = "harvest_crops"  # 收获作物
+    EARN_GOLD = "earn_gold"  # 赚取金币
+    SOCIAL_INTERACTION = "social_interaction"  # 社交互动
+
+
+class EventType(str, Enum):
+    """活动类型枚举"""
+
+    DOUBLE_EXP = "double_exp"  # 双倍经验
+    SPECIAL_CROP = "special_crop"  # 特殊作物
+    FESTIVAL = "festival"  # 节日活动
+
+
+class QuestCategory(str, Enum):
+    """任务类别枚举"""
+
+    CODING = "coding"  # 编码任务
+    FARMING = "farming"  # 农场任务
+    SOCIAL = "social"  # 社交任务
+    EXPLORATION = "exploration"  # 探索任务
+    CHALLENGE = "challenge"  # 挑战任务
+
+
+class QuestStatus(str, Enum):
+    """任务状态枚举"""
+
+    ACTIVE = "active"  # 进行中
+    COMPLETED = "completed"  # 已完成
+    CLAIMED = "claimed"  # 已领取
+    EXPIRED = "expired"  # 已过期
+
+
 class Player(Base):
     """玩家数据表
 
@@ -781,3 +819,156 @@ GIFT_SHOP_ITEMS = {
     "celebration_cake": {"name": "庆祝蛋糕", "price": 80, "stock": 10},
     "lucky_charm": {"name": "幸运符", "price": 150, "stock": 5},
 }
+
+
+class Quest(Base):
+    """任务定义表
+
+    存储任务的基本信息，包括类型、目标、奖励等。
+    """
+
+    __tablename__ = "quests"
+
+    quest_id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    quest_type: Mapped[str] = mapped_column(
+        String(30), default=QuestType.DAILY_CHECK_IN.value
+    )  # 任务类型
+    title: Mapped[str] = mapped_column(String(100), nullable=False)  # 任务标题
+    description: Mapped[str] = mapped_column(Text, nullable=False)  # 任务描述
+    target_value: Mapped[int] = mapped_column(Integer, default=1)  # 目标值
+    target_param: Mapped[str | None] = mapped_column(
+        String(100), nullable=True
+    )  # 目标参数
+
+    # 奖励 (JSON格式)
+    reward_json: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON格式奖励配置
+
+    # 每日任务配置
+    is_daily: Mapped[bool] = mapped_column(Boolean, default=True)  # 是否每日任务
+    refresh_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)  # 刷新时间
+
+    # 状态
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)  # 是否激活
+
+    # 时间戳
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    # 关系
+    progress_records: Mapped[list["QuestProgress"]] = relationship(
+        "QuestProgress", back_populates="quest", cascade="all, delete-orphan"
+    )
+
+    def __repr__(self) -> str:
+        return f"<Quest(title={self.title}, type={self.quest_type})>"
+
+
+class QuestProgress(Base):
+    """任务进度表
+
+    存储玩家的任务进度，包括当前进度、完成状态等。
+    """
+
+    __tablename__ = "quest_progress"
+
+    progress_id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    player_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("players.player_id"), nullable=False
+    )
+    quest_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("quests.quest_id"), nullable=False
+    )
+
+    # 进度
+    current_value: Mapped[int] = mapped_column(Integer, default=0)  # 当前进度
+    is_completed: Mapped[bool] = mapped_column(Boolean, default=False)  # 是否完成
+    is_claimed: Mapped[bool] = mapped_column(Boolean, default=False)  # 是否已领取
+
+    # 时间戳
+    started_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    claimed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    last_refresh: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    # 关系
+    quest: Mapped["Quest"] = relationship("Quest", back_populates="progress_records")
+
+    def __repr__(self) -> str:
+        return f"<QuestProgress(quest={self.quest_id}, progress={self.current_value}, completed={self.is_completed})>"
+
+
+class GameEvent(Base):
+    """游戏活动表
+
+    存储游戏活动的信息，包括类型、时间、效果等。
+    """
+
+    __tablename__ = "game_events"
+
+    event_id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    event_type: Mapped[str] = mapped_column(
+        String(30), default=EventType.DOUBLE_EXP.value
+    )  # 活动类型
+    title: Mapped[str] = mapped_column(String(100), nullable=False)  # 活动标题
+    description: Mapped[str] = mapped_column(Text, nullable=False)  # 活动描述
+
+    # 时间
+    start_time: Mapped[datetime] = mapped_column(DateTime, nullable=False)  # 开始时间
+    end_time: Mapped[datetime] = mapped_column(DateTime, nullable=False)  # 结束时间
+
+    # 效果 (JSON格式)
+    effects_json: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON格式效果配置
+
+    # 状态
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)  # 是否激活
+
+    # 时间戳
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    def __repr__(self) -> str:
+        return f"<GameEvent(title={self.title}, type={self.event_type})>"
+
+
+# 默认每日任务配置
+DEFAULT_DAILY_QUESTS = [
+    {
+        "quest_type": QuestType.DAILY_CHECK_IN.value,
+        "title": "每日签到",
+        "description": "完成每日签到",
+        "target_value": 1,
+        "reward_json": '{"gold": 50, "exp": 20}',
+    },
+    {
+        "quest_type": QuestType.CODING_TIME.value,
+        "title": "编码30分钟",
+        "description": "完成30分钟的Vibe-Coding活动",
+        "target_value": 1800,
+        "reward_json": '{"energy": 100, "gold": 50, "exp": 25}',
+    },
+    {
+        "quest_type": QuestType.HARVEST_CROPS.value,
+        "title": "收获5株作物",
+        "description": "从农场收获5株作物",
+        "target_value": 5,
+        "reward_json": '{"gold": 50, "exp": 20}',
+    },
+    {
+        "quest_type": QuestType.SUBMIT_CROPS.value,
+        "title": "种植3株作物",
+        "description": "在农场种植3株作物",
+        "target_value": 3,
+        "reward_json": '{"gold": 30, "exp": 15}',
+    },
+    {
+        "quest_type": QuestType.SOCIAL_INTERACTION.value,
+        "title": "访问好友",
+        "description": "访问1位好友的家园",
+        "target_value": 1,
+        "reward_json": '{"gold": 30, "exp": 20}',
+    },
+]
