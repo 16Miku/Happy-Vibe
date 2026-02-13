@@ -9,8 +9,6 @@
 
 from .connection_manager import ConnectionManager
 from .models import (
-    FriendRequest,
-    FriendRequestStatus,
     Guild,
     GuildMember,
     GuildRole,
@@ -18,6 +16,7 @@ from .models import (
     MessageType,
     OnlineStatus,
 )
+from src.storage.models import FriendRequest, FriendRequestStatus
 
 __all__ = [
     "ConnectionManager",

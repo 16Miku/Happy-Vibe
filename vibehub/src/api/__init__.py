@@ -7,7 +7,6 @@ from .check_in import router as check_in_router
 from .economy import router as economy_router
 from .energy import router as energy_router
 from .farm import router as farm_router
-from .friend import router as friend_router
 from .friends import router as friends_router
 from .guilds import router as guilds_router
 from .health import router as health_router
@@ -24,9 +23,8 @@ __all__ = [
     "farm_router",
     "achievement_router",
     "energy_router",
-    "friend_router",
-    "check_in_router",
     "friends_router",
+    "check_in_router",
     "guilds_router",
     "leaderboards_router",
     "websocket_router",

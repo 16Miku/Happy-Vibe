@@ -13,7 +13,6 @@ from src.api import (
     economy_router,
     energy_router,
     farm_router,
-    friend_router,
     friends_router,
     guilds_router,
     health_router,
@@ -24,6 +23,7 @@ from src.api import (
     websocket_router,
 )
 from src.config.settings import settings
+from src.storage.database import Database
 
 
 @asynccontextmanager
@@ -34,6 +34,13 @@ async def lifespan(app: FastAPI):
     print(f"[VibeHub] Version: {settings.VERSION}")
     print(f"[VibeHub] Server: http://{settings.HOST}:{settings.PORT}")
     print(f"[VibeHub] WebSocket: ws://{settings.HOST}:{settings.PORT}/ws/connect")
+
+    # 初始化数据库
+    print("[VibeHub] Initializing database...")
+    db = Database()
+    db.create_tables()
+    print("[VibeHub] Database tables created successfully")
+
     yield
     # 关闭时执行
     print("[VibeHub] Happy Vibe Hub closed")
@@ -64,7 +71,6 @@ def create_app() -> FastAPI:
     app.include_router(farm_router)
     app.include_router(achievement_router)
     app.include_router(energy_router)
-    app.include_router(friend_router)
     app.include_router(check_in_router)
 
     # 注册路由 - 多人联机功能

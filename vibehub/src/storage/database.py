@@ -64,7 +64,8 @@ class Database:
 
     def create_tables(self) -> None:
         """创建所有数据库表"""
-        Base.metadata.create_all(bind=self.engine)
+        # 使用 checkfirst=True 避免重复表定义错误
+        Base.metadata.create_all(bind=self.engine, checkfirst=True)
 
     def drop_tables(self) -> None:
         """删除所有数据库表（谨慎使用）"""

@@ -369,7 +369,7 @@ class CodingActivity(Base):
 class Relationship(Base):
     """社交关系表
 
-    存储玩家之间的社交关系，如好友、公会成员等。
+    存储玩家之间的社交关系，包括好友、导师、学徒等。
     """
 
     __tablename__ = "relationships"

@@ -31,15 +31,6 @@ class OnlineStatus(str, Enum):
     OFFLINE = "offline"  # 离线
 
 
-class FriendRequestStatus(str, Enum):
-    """好友请求状态"""
-
-    PENDING = "pending"  # 待处理
-    ACCEPTED = "accepted"  # 已接受
-    REJECTED = "rejected"  # 已拒绝
-    CANCELLED = "cancelled"  # 已取消
-
-
 class GuildRole(str, Enum):
     """公会角色"""
 
@@ -59,34 +50,6 @@ class MessageType(str, Enum):
 
 
 # ==================== 数据库模型 ====================
-
-
-class FriendRequest(Base):
-    """好友请求表
-
-    存储好友请求记录。
-    """
-
-    __tablename__ = "friend_requests"
-
-    request_id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=generate_uuid
-    )
-    from_player_id: Mapped[str] = mapped_column(String(36), nullable=False)
-    to_player_id: Mapped[str] = mapped_column(String(36), nullable=False)
-
-    # 请求状态
-    status: Mapped[str] = mapped_column(
-        String(20), default=FriendRequestStatus.PENDING.value
-    )
-    message: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
-
-    # 时间戳
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    responded_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-
-    def __repr__(self) -> str:
-        return f"<FriendRequest(from={self.from_player_id}, to={self.to_player_id}, status={self.status})>"
 
 
 class Guild(Base):

@@ -1,0 +1,127 @@
+{
+  "timestamp": "2026-02-14T04:38:24.004587",
+  "base_url": "http://127.0.0.1:8765",
+  "player_id": "0714f0dd-7a8e-4aa2-941b-845be0180136",
+  "results": [
+    {
+      "name": "健康检查",
+      "method": "GET",
+      "path": "/api/health",
+      "status": 200,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "获取玩家列表",
+      "method": "GET",
+      "path": "/api/player",
+      "status": 200,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "创建玩家",
+      "method": "POST",
+      "path": "/api/player",
+      "status": 409,
+      "success": false,
+      "error": null
+    },
+    {
+      "name": "获取玩家详情",
+      "method": "GET",
+      "path": "/api/player/0714f0dd-7a8e-4aa2-941b-845be0180136",
+      "status": 404,
+      "success": false,
+      "error": null
+    },
+    {
+      "name": "获取当前活动",
+      "method": "GET",
+      "path": "/api/activity/current?player_id=0714f0dd-7a8e-4aa2-941b-845be0180136",
+      "status": 200,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "获取农场",
+      "method": "GET",
+      "path": "/api/farm?player_id=0714f0dd-7a8e-4aa2-941b-845be0180136",
+      "status": 200,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "获取作物配置",
+      "method": "GET",
+      "path": "/api/farm/crops?player_id=0714f0dd-7a8e-4aa2-941b-845be0180136",
+      "status": 200,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "获取玩家成就",
+      "method": "GET",
+      "path": "/api/achievements/player?player_id=0714f0dd-7a8e-4aa2-941b-845be0180136",
+      "status": 404,
+      "success": false,
+      "error": null
+    },
+    {
+      "name": "获取能量状态",
+      "method": "GET",
+      "path": "/api/energy/status?player_id=0714f0dd-7a8e-4aa2-941b-845be0180136",
+      "status": 200,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "获取签到状态",
+      "method": "GET",
+      "path": "/api/check-in/status?player_id=0714f0dd-7a8e-4aa2-941b-845be0180136",
+      "status": 200,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "获取商店物品",
+      "method": "GET",
+      "path": "/api/shops/items?player_id=0714f0dd-7a8e-4aa2-941b-845be0180136",
+      "status": 404,
+      "success": false,
+      "error": null
+    },
+    {
+      "name": "获取市场列表",
+      "method": "GET",
+      "path": "/api/market/listings?player_id=0714f0dd-7a8e-4aa2-941b-845be0180136",
+      "status": 200,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "获取拍卖列表",
+      "method": "GET",
+      "path": "/api/auctions?player_id=0714f0dd-7a8e-4aa2-941b-845be0180136",
+      "status": 200,
+      "success": true,
+      "error": null
+    },
+    {
+      "name": "获取经济指标",
+      "method": "GET",
+      "path": "/api/economy/metrics?player_id=0714f0dd-7a8e-4aa2-941b-845be0180136",
+      "status": 404,
+      "success": false,
+      "error": null
+    },
+    {
+      "name": "获取排行榜",
+      "method": "GET",
+      "path": "/api/leaderboards?level=all",
+      "status": 404,
+      "success": false,
+      "error": null
+    }
+  ]
+}

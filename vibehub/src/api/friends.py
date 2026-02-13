@@ -14,8 +14,8 @@ from src.multiplayer.connection_manager import connection_manager
 from src.multiplayer.models import (
     AFFINITY_ACTIONS,
     AFFINITY_LEVELS,
-    FriendRequestStatus,
 )
+from src.storage.models import FriendRequestStatus
 
 router = APIRouter(prefix="/api/friends", tags=["friends"])
 
