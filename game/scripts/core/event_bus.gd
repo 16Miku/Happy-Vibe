@@ -152,8 +152,51 @@ signal friend_offline(friend_id: String)
 ## 收到好友请求
 signal friend_request_received(from_id: String, from_name: String)
 
+## 好友请求被接受
+signal friend_request_accepted(friend_id: String, friend_name: String)
+
 ## 收到礼物
 signal gift_received(from_id: String, item_id: String)
+
+## 收到帮忙通知
+signal help_received(from_id: String, help_type: String)
+
+## 农场被访问
+signal farm_visited(visitor_id: String, visitor_name: String)
+
+## 好友列表更新
+signal friends_list_updated(friends: Array)
+
+# ==================== 公会相关信号 ====================
+
+## 加入公会
+signal guild_joined(guild_id: String, guild_name: String)
+
+## 离开公会
+signal guild_left()
+
+## 被踢出公会
+signal guild_kicked()
+
+## 公会升级
+signal guild_level_up(new_level: int)
+
+## 公会消息
+signal guild_message_received(from_id: String, content: String)
+
+## 公会成员加入
+signal guild_member_joined(player_id: String, player_name: String)
+
+## 公会成员离开
+signal guild_member_left(player_id: String)
+
+# ==================== 排行榜相关信号 ====================
+
+## 排行榜更新
+signal leaderboard_updated(lb_type: String, entries: Array)
+
+## 玩家排名变化
+signal player_rank_changed(lb_type: String, old_rank: int, new_rank: int)
 
 # ==================== 网络相关信号 ====================
 

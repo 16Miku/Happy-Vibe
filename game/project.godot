@@ -25,6 +25,10 @@ GameManager="*res://scripts/core/game_manager.gd"
 AvatarManager="*res://scripts/avatar/avatar_manager.gd"
 EnergyManager="*res://scripts/energy/energy_manager.gd"
 VibeClient="*res://scripts/vibe/vibe_client.gd"
+MultiplayerClient="*res://scripts/multiplayer/multiplayer_client.gd"
+FriendsManager="*res://scripts/multiplayer/friends_manager.gd"
+GuildManager="*res://scripts/multiplayer/guild_manager.gd"
+LeaderboardManager="*res://scripts/multiplayer/leaderboard_manager.gd"
 
 [display]
 

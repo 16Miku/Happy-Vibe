@@ -12,8 +12,12 @@ from src.api import (
     energy_router,
     farm_router,
     friend_router,
+    friends_router,
+    guilds_router,
     health_router,
+    leaderboards_router,
     player_router,
+    websocket_router,
 )
 from src.config.settings import settings
 
@@ -25,6 +29,7 @@ async def lifespan(app: FastAPI):
     print("[VibeHub] Happy Vibe Hub starting...")
     print(f"[VibeHub] Version: {settings.VERSION}")
     print(f"[VibeHub] Server: http://{settings.HOST}:{settings.PORT}")
+    print(f"[VibeHub] WebSocket: ws://{settings.HOST}:{settings.PORT}/ws/connect")
     yield
     # 关闭时执行
     print("[VibeHub] Happy Vibe Hub closed")
@@ -34,7 +39,7 @@ def create_app() -> FastAPI:
     """创建 FastAPI 应用实例"""
     app = FastAPI(
         title="Happy Vibe Hub",
-        description="Vibe-Coding 游戏化平台本地服务",
+        description="Vibe-Coding 游戏化平台本地服务 - 支持多人联机",
         version=settings.VERSION,
         lifespan=lifespan
     )
@@ -48,7 +53,7 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # 注册路由
+    # 注册路由 - 基础功能
     app.include_router(health_router)
     app.include_router(player_router)
     app.include_router(activity_router)
@@ -57,6 +62,12 @@ def create_app() -> FastAPI:
     app.include_router(energy_router)
     app.include_router(friend_router)
     app.include_router(check_in_router)
+
+    # 注册路由 - 多人联机功能
+    app.include_router(friends_router)
+    app.include_router(guilds_router)
+    app.include_router(leaderboards_router)
+    app.include_router(websocket_router)
 
     return app
 
