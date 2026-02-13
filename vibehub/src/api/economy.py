@@ -42,6 +42,16 @@ class PriceIndexResponse(BaseModel):
     items: dict[str, int]
 
 
+class EconomyMetricsResponse(BaseModel):
+    """经济指标响应"""
+    total_money_supply: int
+    avg_player_wealth: float
+    transaction_volume: int
+    inflation_rate: float
+    health_score: float
+    recorded_at: str
+
+
 class MonitorRequest(BaseModel):
     """监控请求"""
 
