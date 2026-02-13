@@ -156,7 +156,41 @@ vibe-kanban MCP 是一个任务管理系统，支持启动独立的 Claude Code 
 - [ ] 中文 Git 提交信息
 ```
 
-### 3.6 MCP 工具调用示例
+### 3.6 MCP 服务可用性检查
+
+⚠️ **重要提示**：每次使用 vibe-kanban MCP 工具前，务必检查服务可用性和工具更新！
+
+```python
+# 步骤 1：检查服务是否可用（每次使用前必做）
+try:
+    # 调用简单方法验证服务连接
+    orgs = mcp__vibe_kanban__list_organizations()
+    print("✓ vibe-kanban 服务可用")
+except Exception as e:
+    print(f"❌ vibe-kanban 服务不可用: {e}")
+    print("请使用 /mcp 命令重新连接 vibe-kanban")
+    # 不要继续执行后续操作
+    exit()
+
+# 步骤 2：验证所需工具是否存在
+# 可用工具列表可能随时更新，使用前务必确认
+required_tools = [
+    "mcp__vibe_kanban__list_organizations",
+    "mcp__vibe_kanban__list_projects",
+    "mcp__vibe_kanban__list_issues",
+    "mcp__vibe_kanban__create_issue",
+    "mcp__vibe_kanban__start_workspace_session",  # 注意：必须带 issue_id 参数
+    "mcp__vibe_kanban__get_issue",
+    "mcp__vibe_kanban__update_issue",
+]
+```
+
+**常见问题排查**：
+- **502 Bad Gateway**: 服务暂时不可用，请稍后重试或重新连接
+- **工具名称不存在**: MCP 服务可能更新了工具名称，请重新检查可用工具
+- **任务状态未更新**: 检查 `start_workspace_session` 是否包含了 `issue_id` 参数
+
+### 3.7 MCP 工具调用示例
 
 ```python
 # 1. 列出组织
@@ -234,7 +268,7 @@ mcp__vibe_kanban__link_workspace(
 )
 ```
 
-### 3.7 注意事项
+### 3.8 注意事项
 
 1. **不要重复创建任务**: vibe-kanban 云端任务和本地开发是不同的，不要同时进行
 2. **任务描述要详细**: 云端工作空间是独立的，需要完整的上下文
@@ -242,7 +276,7 @@ mcp__vibe_kanban__link_workspace(
 4. **合并后审查**: 任务完成合并到 main 后，必须进行代码审查
 5. **避免冲突**: 并行任务应该修改不同的文件，避免合并冲突
 
-### 3.8 任务拆分原则
+### 3.9 任务拆分原则
 
 ```
 可并行任务（无依赖）:
