@@ -69,6 +69,14 @@ class RelationshipType(str, Enum):
     BLOCKED = "blocked"  # 屏蔽
 
 
+class FriendRequestStatus(str, Enum):
+    """好友请求状态枚举"""
+
+    PENDING = "pending"  # 待处理
+    ACCEPTED = "accepted"  # 已接受
+    REJECTED = "rejected"  # 已拒绝
+
+
 class Player(Base):
     """玩家数据表
 
@@ -350,6 +358,48 @@ class Relationship(Base):
 
     def __repr__(self) -> str:
         return f"<Relationship(type={self.relationship_type}, affinity={self.affinity_score})>"
+
+
+class FriendRequest(Base):
+    """好友请求表
+
+    存储玩家之间的好友请求，支持发送、接受、拒绝操作。
+    """
+
+    __tablename__ = "friend_requests"
+
+    request_id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    sender_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("players.player_id"), nullable=False
+    )
+    receiver_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("players.player_id"), nullable=False
+    )
+
+    # 请求状态
+    status: Mapped[str] = mapped_column(
+        String(20), default=FriendRequestStatus.PENDING.value
+    )
+    message: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)  # 附言
+
+    # 时间戳
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+    # 关系
+    sender: Mapped["Player"] = relationship(
+        "Player", foreign_keys=[sender_id], backref="sent_friend_requests"
+    )
+    receiver: Mapped["Player"] = relationship(
+        "Player", foreign_keys=[receiver_id], backref="received_friend_requests"
+    )
+
+    def __repr__(self) -> str:
+        return f"<FriendRequest(sender={self.sender_id}, receiver={self.receiver_id}, status={self.status})>"
 
 
 # 作物配置数据

@@ -10,6 +10,7 @@ from src.api import (
     activity_router,
     energy_router,
     farm_router,
+    friend_router,
     health_router,
     player_router,
 )
@@ -53,6 +54,7 @@ def create_app() -> FastAPI:
     app.include_router(farm_router)
     app.include_router(achievement_router)
     app.include_router(energy_router)
+    app.include_router(friend_router)
 
     return app
 
