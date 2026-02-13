@@ -77,3 +77,7 @@ temp/
 secrets.json
 ERRORS_SUMMARY.md
 .claude/project.json
+uv.lock
+
+# ==================== 根目录临时测试脚本 ====================
+/test_*.py
