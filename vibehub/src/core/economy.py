@@ -108,20 +108,26 @@ class EconomyController:
 
     def get_metrics(self, limit: int = 10) -> dict:
         """获取经济指标"""
-        snapshot = self.monitor_economy_health(
-            total_money_supply=self._history[-1].total_money_supply if self._history else 0,
-            player_count=len([p for p in self._history if p.player_count > 0]),
-            transaction_volume=sum([p.transaction_volume for p in self._history]),
-            previous_money_supply=self._history[-2].total_money_supply if len(self._history) > 1 else None,
-        )
+        # 如果没有历史记录，返回默认值
+        if not self._history:
+            return {
+                "total_money_supply": 0,
+                "avg_player_wealth": 0.0,
+                "transaction_volume": 0,
+                "inflation_rate": 0.0,
+                "health_score": 100.0,
+                "recorded_at": datetime.now().isoformat(),
+            }
 
+        # 从最新快照获取指标
+        latest = self._history[-1]
         return {
-            "total_money_supply": snapshot.total_money_supply,
-            "avg_player_wealth": snapshot.avg_player_wealth,
-            "transaction_volume": snapshot.transaction_volume,
-            "inflation_rate": snapshot.inflation_rate,
-            "health_score": snapshot.health_score,
-            "recorded_at": snapshot.recorded_at.isoformat(),
+            "total_money_supply": latest.total_money_supply,
+            "avg_player_wealth": latest.avg_player_wealth,
+            "transaction_volume": latest.transaction_volume,
+            "inflation_rate": latest.inflation_rate,
+            "health_score": latest.health_score,
+            "recorded_at": latest.recorded_at.isoformat(),
         }
 
 
