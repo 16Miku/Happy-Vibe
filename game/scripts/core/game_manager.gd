@@ -84,6 +84,10 @@ func _create_default_player() -> Dictionary:
 		"consecutive_days": 0,
 		"last_login": Time.get_unix_time_from_system(),
 		"created_at": Time.get_unix_time_from_system(),
+		"avatar": {
+			"current": "default_coder",
+			"unlocked": ["default_coder", "default_hacker", "default_robot"]
+		},
 		"farm": {
 			"plots": [],
 			"buildings": [],

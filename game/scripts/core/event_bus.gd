@@ -82,6 +82,14 @@ signal item_used(item_id: String)
 ## 库存已满
 signal inventory_full()
 
+# ==================== 头像相关信号 ====================
+
+## 头像更换
+signal avatar_changed(avatar_id: String)
+
+## 头像解锁
+signal avatar_unlocked(avatar_id: String)
+
 # ==================== 成就相关信号 ====================
 
 ## 成就解锁

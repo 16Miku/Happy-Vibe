@@ -8,6 +8,10 @@ extends Control
 @onready var flow_indicator: PanelContainer = $FlowIndicator
 @onready var flow_label: Label = $FlowIndicator/HBox/FlowLabel
 
+## 头像相关节点
+var avatar_display: Control = null
+var avatar_selector: Control = null
+
 ## 能量获取动画节点
 var energy_popup_container: Control = null
 var energy_popup_label: Label = null
@@ -20,9 +24,43 @@ var is_in_flow: bool = false
 
 
 func _ready() -> void:
+	_setup_avatar_display()
 	_setup_energy_popup()
 	_connect_signals()
 	_update_display()
+
+
+## 设置头像显示组件
+func _setup_avatar_display() -> void:
+	"""创建头像显示组件，放置在TopBar左侧"""
+	# 加载 AvatarDisplay 脚本
+	var AvatarDisplayScript = load("res://scripts/avatar/avatar_display.gd")
+	if not AvatarDisplayScript:
+		push_warning("[HUD] 无法加载 AvatarDisplay 脚本")
+		return
+
+	# 创建头像显示组件
+	avatar_display = AvatarDisplayScript.new()
+	avatar_display.name = "AvatarDisplay"
+	avatar_display.avatar_size = 1  # AvatarSize.MEDIUM = 48
+	avatar_display.border_style = 2  # BorderStyle.RARITY
+	avatar_display.clickable = true
+	avatar_display.show_level_badge = true
+
+	# 获取 TopBar 并插入头像
+	var top_bar = get_node_or_null("TopBar")
+	if top_bar:
+		# 在 TopBar 最前面插入头像
+		top_bar.add_child(avatar_display)
+		top_bar.move_child(avatar_display, 0)
+
+		# 连接点击信号
+		if avatar_display.has_signal("avatar_clicked"):
+			avatar_display.avatar_clicked.connect(_on_avatar_clicked)
+	else:
+		push_warning("[HUD] 未找到 TopBar 节点")
+		avatar_display.queue_free()
+		avatar_display = null
 
 
 ## 设置能量获取动画节点
@@ -135,6 +173,54 @@ func _on_flow_exited(_duration: float) -> void:
 	is_in_flow = false
 	if flow_indicator:
 		flow_indicator.visible = false
+
+
+## ==================== 头像系统 ====================
+
+## 头像点击处理
+func _on_avatar_clicked() -> void:
+	"""打开头像选择器"""
+	_open_avatar_selector()
+
+
+## 打开头像选择器
+func _open_avatar_selector() -> void:
+	"""创建并显示头像选择器"""
+	if avatar_selector and is_instance_valid(avatar_selector):
+		avatar_selector.open()
+		return
+
+	# 加载 AvatarSelector 脚本
+	var AvatarSelectorScript = load("res://scripts/avatar/avatar_selector.gd")
+	if not AvatarSelectorScript:
+		push_warning("[HUD] 无法加载 AvatarSelector 脚本")
+		return
+
+	# 创建头像选择器
+	avatar_selector = AvatarSelectorScript.new()
+	avatar_selector.name = "AvatarSelector"
+
+	# 连接信号
+	avatar_selector.avatar_selected.connect(_on_avatar_selected)
+	avatar_selector.closed.connect(_on_avatar_selector_closed)
+
+	# 添加到场景树（作为 HUD 的子节点）
+	add_child(avatar_selector)
+	avatar_selector.open()
+
+
+## 头像选择处理
+func _on_avatar_selected(avatar_id: String) -> void:
+	"""处理头像选择"""
+	print("[HUD] 头像已选择: ", avatar_id)
+	# 头像显示组件会自动更新（通过 AvatarManager 信号）
+
+
+## 头像选择器关闭处理
+func _on_avatar_selector_closed() -> void:
+	"""处理头像选择器关闭"""
+	# 可以选择销毁或保留选择器实例
+	pass
 
 
 ## ==================== 能量获取动画 ====================
