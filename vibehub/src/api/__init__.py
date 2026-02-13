@@ -2,6 +2,7 @@
 
 from .achievement import router as achievement_router
 from .activity import router as activity_router
+from .check_in import router as check_in_router
 from .energy import router as energy_router
 from .farm import router as farm_router
 from .friend import router as friend_router
@@ -16,4 +17,5 @@ __all__ = [
     "achievement_router",
     "energy_router",
     "friend_router",
+    "check_in_router",
 ]

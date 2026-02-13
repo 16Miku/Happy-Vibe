@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.api import (
     achievement_router,
     activity_router,
+    check_in_router,
     energy_router,
     farm_router,
     friend_router,
@@ -55,6 +56,7 @@ def create_app() -> FastAPI:
     app.include_router(achievement_router)
     app.include_router(energy_router)
     app.include_router(friend_router)
+    app.include_router(check_in_router)
 
     return app
 

@@ -461,3 +461,35 @@ QUALITY_MULTIPLIERS = {
     CropQuality.EXCELLENT.value: 2.5,
     CropQuality.LEGENDARY.value: 5.0,
 }
+
+
+class CheckInRecord(Base):
+    """签到记录表
+
+    存储玩家的每日签到记录，用于历史查询和统计。
+    """
+
+    __tablename__ = "check_in_records"
+
+    record_id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    player_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("players.player_id"), nullable=False
+    )
+
+    # 签到信息
+    check_in_date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    consecutive_days: Mapped[int] = mapped_column(Integer, default=1)  # 签到时的连续天数
+
+    # 奖励信息
+    energy_reward: Mapped[int] = mapped_column(Integer, default=0)
+    gold_reward: Mapped[int] = mapped_column(Integer, default=0)
+    exp_reward: Mapped[int] = mapped_column(Integer, default=0)
+    special_item: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+
+    # 时间戳
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    def __repr__(self) -> str:
+        return f"<CheckInRecord(date={self.check_in_date.date()}, streak={self.consecutive_days})>"
