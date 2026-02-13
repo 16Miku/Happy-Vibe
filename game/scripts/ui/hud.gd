@@ -7,10 +7,20 @@ extends Control
 @onready var level_label: Label = $TopBar/LevelPanel/HBox/LevelLabel
 @onready var flow_indicator: PanelContainer = $FlowIndicator
 @onready var flow_label: Label = $FlowIndicator/HBox/FlowLabel
+@onready var quest_button: Button = $BottomBar/QuestButton
+@onready var decoration_button: Button = $BottomBar/DecorationButton
+@onready var season_button: Button = $BottomBar/SeasonButton
+@onready var settings_button: Button = $BottomBar/SettingsButton
 
 ## 头像相关节点
 var avatar_display: Control = null
 var avatar_selector: Control = null
+
+## 面板实例
+var quest_panel: Control = null
+var decoration_panel: Control = null
+var season_panel: Control = null
+var settings_panel: Control = null
 
 ## 能量获取动画节点
 var energy_popup_container: Control = null
@@ -26,6 +36,7 @@ var is_in_flow: bool = false
 func _ready() -> void:
 	_setup_avatar_display()
 	_setup_energy_popup()
+	_setup_bottom_bar_buttons()
 	_connect_signals()
 	_update_display()
 
@@ -310,3 +321,107 @@ func _clean_animation() -> void:
 		energy_animation_timer.queue_free()
 		energy_animation_timer = null
 	_animation_progress = 0.0
+
+
+## ==================== 底部按钮栏 ====================
+
+## 设置底部按钮
+func _setup_bottom_bar_buttons() -> void:
+	"""连接底部按钮信号"""
+	if quest_button:
+		quest_button.pressed.connect(_on_quest_button_pressed)
+	if decoration_button:
+		decoration_button.pressed.connect(_on_decoration_button_pressed)
+	if season_button:
+		season_button.pressed.connect(_on_season_button_pressed)
+	if settings_button:
+		settings_button.pressed.connect(_on_settings_button_pressed)
+
+
+## 任务按钮点击
+func _on_quest_button_pressed() -> void:
+	"""打开任务面板"""
+	if quest_panel == null or not is_instance_valid(quest_panel):
+		var panel_scene := load("res://scenes/ui/quest/quest_panel.tscn")
+		if panel_scene:
+			quest_panel = panel_scene.instantiate()
+			add_child(quest_panel)
+		else:
+			push_warning("[HUD] 无法加载任务面板场景")
+			return
+
+	if quest_panel.visible:
+		quest_panel.hide()
+	else:
+		_hide_all_panels()
+		quest_panel.show()
+
+
+## 装饰按钮点击
+func _on_decoration_button_pressed() -> void:
+	"""打开装饰面板"""
+	if decoration_panel == null or not is_instance_valid(decoration_panel):
+		var panel_scene := load("res://scenes/ui/decoration/decoration_panel.tscn")
+		if panel_scene:
+			decoration_panel = panel_scene.instantiate()
+			add_child(decoration_panel)
+		else:
+			push_warning("[HUD] 无法加载装饰面板场景")
+			return
+
+	if decoration_panel.visible:
+		decoration_panel.hide()
+	else:
+		_hide_all_panels()
+		decoration_panel.show()
+
+
+## 赛季按钮点击
+func _on_season_button_pressed() -> void:
+	"""打开赛季面板"""
+	if season_panel == null or not is_instance_valid(season_panel):
+		var panel_scene := load("res://scenes/ui/season/season_panel.tscn")
+		if panel_scene:
+			season_panel = panel_scene.instantiate()
+			add_child(season_panel)
+		else:
+			push_warning("[HUD] 无法加载赛季面板场景")
+			return
+
+	if season_panel.visible:
+		season_panel.hide()
+	else:
+		_hide_all_panels()
+		season_panel.show()
+
+
+## 设置按钮点击
+func _on_settings_button_pressed() -> void:
+	"""打开设置面板"""
+	if settings_panel == null or not is_instance_valid(settings_panel):
+		var panel_scene := load("res://scenes/ui/settings.tscn")
+		if panel_scene:
+			settings_panel = panel_scene.instantiate()
+			add_child(settings_panel)
+		else:
+			push_warning("[HUD] 无法加载设置面板场景")
+			return
+
+	if settings_panel.visible:
+		settings_panel.hide()
+	else:
+		_hide_all_panels()
+		settings_panel.show()
+
+
+## 隐藏所有面板
+func _hide_all_panels() -> void:
+	"""隐藏所有打开的面板"""
+	if quest_panel and is_instance_valid(quest_panel):
+		quest_panel.hide()
+	if decoration_panel and is_instance_valid(decoration_panel):
+		decoration_panel.hide()
+	if season_panel and is_instance_valid(season_panel):
+		season_panel.hide()
+	if settings_panel and is_instance_valid(settings_panel):
+		settings_panel.hide()

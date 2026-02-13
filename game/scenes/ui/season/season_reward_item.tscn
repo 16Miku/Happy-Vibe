@@ -1,0 +1,73 @@
+[gd_scene load_steps=2 format=3 uid="uid://season_reward_item"]
+
+[ext_resource type="Script" path="res://scripts/ui/season_reward_item.gd" id="1_reward_item"]
+
+[node name="SeasonRewardItem" type="PanelContainer"]
+custom_minimum_size = Vector2(100, 180)
+script = ExtResource("1_reward_item")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="LevelLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Lv.1"
+horizontal_alignment = 1
+
+[node name="FreeReward" type="PanelContainer" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+
+[node name="FreeContent" type="VBoxContainer" parent="VBoxContainer/FreeReward"]
+layout_mode = 2
+alignment = 1
+
+[node name="FreeLabel" type="Label" parent="VBoxContainer/FreeReward/FreeContent"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.6, 0.6, 0.7, 1)
+text = "免费"
+horizontal_alignment = 1
+
+[node name="FreeRewardText" type="Label" parent="VBoxContainer/FreeReward/FreeContent"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "500 金币"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="FreeClaimBtn" type="Button" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 25)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "领取"
+
+[node name="PremiumReward" type="PanelContainer" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+
+[node name="PremiumContent" type="VBoxContainer" parent="VBoxContainer/PremiumReward"]
+layout_mode = 2
+alignment = 1
+
+[node name="PremiumLabel" type="Label" parent="VBoxContainer/PremiumReward/PremiumContent"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.9, 0.7, 0.3, 1)
+text = "高级"
+horizontal_alignment = 1
+
+[node name="PremiumRewardText" type="Label" parent="VBoxContainer/PremiumReward/PremiumContent"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "50 钻石"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="PremiumClaimBtn" type="Button" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 25)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "领取"

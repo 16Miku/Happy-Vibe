@@ -29,6 +29,10 @@ MultiplayerClient="*res://scripts/multiplayer/multiplayer_client.gd"
 FriendsManager="*res://scripts/multiplayer/friends_manager.gd"
 GuildManager="*res://scripts/multiplayer/guild_manager.gd"
 LeaderboardManager="*res://scripts/multiplayer/leaderboard_manager.gd"
+QuestManager="*res://scripts/quest/quest_manager.gd"
+DecorationManager="*res://scripts/decoration/decoration_manager.gd"
+SeasonManager="*res://scripts/season/season_manager.gd"
+AudioManager="*res://scripts/core/audio_manager.gd"
 
 [display]
 

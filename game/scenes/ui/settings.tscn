@@ -1,0 +1,253 @@
+[gd_scene load_steps=2 format=3 uid="uid://settings"]
+
+[ext_resource type="Script" path="res://scripts/ui/settings.gd" id="1_settings"]
+
+[node name="Settings" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_settings")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.1, 0.15, 0.95)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 100
+theme_override_constants/margin_top = 50
+theme_override_constants/margin_right = 100
+theme_override_constants/margin_bottom = 50
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Header" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="MarginContainer/VBoxContainer/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 32
+text = "设置"
+
+[node name="CloseButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+text = "×"
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SettingsContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 25
+
+[node name="AudioSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="AudioLabel" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/AudioSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "音频设置"
+
+[node name="MasterVolume" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/AudioSection"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/AudioSection/MasterVolume"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "主音量"
+
+[node name="MasterSlider" type="HSlider" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/AudioSection/MasterVolume"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="MasterValue" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/AudioSection/MasterVolume"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+text = "100%"
+
+[node name="MusicVolume" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/AudioSection"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/AudioSection/MusicVolume"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "音乐音量"
+
+[node name="MusicSlider" type="HSlider" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/AudioSection/MusicVolume"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="MusicValue" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/AudioSection/MusicVolume"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+text = "100%"
+
+[node name="SFXVolume" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/AudioSection"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/AudioSection/SFXVolume"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "音效音量"
+
+[node name="SFXSlider" type="HSlider" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/AudioSection/SFXVolume"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="SFXValue" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/AudioSection/SFXVolume"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+text = "100%"
+
+[node name="HSeparator2" type="HSeparator" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent"]
+layout_mode = 2
+
+[node name="DisplaySection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="DisplayLabel" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/DisplaySection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "显示设置"
+
+[node name="Fullscreen" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/DisplaySection"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/DisplaySection/Fullscreen"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "全屏模式"
+
+[node name="FullscreenCheck" type="CheckBox" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/DisplaySection/Fullscreen"]
+layout_mode = 2
+
+[node name="VSync" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/DisplaySection"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/DisplaySection/VSync"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "垂直同步"
+
+[node name="VSyncCheck" type="CheckBox" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/DisplaySection/VSync"]
+layout_mode = 2
+button_pressed = true
+
+[node name="HSeparator3" type="HSeparator" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent"]
+layout_mode = 2
+
+[node name="GameSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="GameLabel" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/GameSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "游戏设置"
+
+[node name="Notifications" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/GameSection"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/GameSection/Notifications"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "通知提醒"
+
+[node name="NotificationsCheck" type="CheckBox" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/GameSection/Notifications"]
+layout_mode = 2
+button_pressed = true
+
+[node name="AutoSave" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/GameSection"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/GameSection/AutoSave"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "自动保存"
+
+[node name="AutoSaveCheck" type="CheckBox" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/GameSection/AutoSave"]
+layout_mode = 2
+button_pressed = true
+
+[node name="HSeparator4" type="HSeparator" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent"]
+layout_mode = 2
+
+[node name="AccountSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="AccountLabel" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/AccountSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "账户"
+
+[node name="Username" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/AccountSection"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/AccountSection/Username"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "用户名"
+
+[node name="UsernameEdit" type="LineEdit" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/AccountSection/Username"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+placeholder_text = "输入用户名"
+
+[node name="ButtonContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 20
+
+[node name="SaveButton" type="Button" parent="MarginContainer/VBoxContainer/ButtonContainer"]
+custom_minimum_size = Vector2(120, 45)
+layout_mode = 2
+text = "保存"
+
+[node name="ResetButton" type="Button" parent="MarginContainer/VBoxContainer/ButtonContainer"]
+custom_minimum_size = Vector2(120, 45)
+layout_mode = 2
+text = "重置"
+
+[node name="VersionLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.5, 0.5, 0.6, 1)
+text = "Happy Vibe v0.1.0"
+horizontal_alignment = 1

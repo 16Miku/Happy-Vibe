@@ -1,0 +1,71 @@
+[gd_scene load_steps=2 format=3 uid="uid://quest_item"]
+
+[ext_resource type="Script" path="res://scripts/ui/quest_item.gd" id="1_quest_item"]
+
+[node name="QuestItem" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 80)
+script = ExtResource("1_quest_item")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="TypeIndicator" type="ColorRect" parent="HBoxContainer"]
+custom_minimum_size = Vector2(6, 0)
+layout_mode = 2
+
+[node name="Content" type="VBoxContainer" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 5
+
+[node name="Header" type="HBoxContainer" parent="HBoxContainer/Content"]
+layout_mode = 2
+
+[node name="QuestName" type="Label" parent="HBoxContainer/Content/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "任务名称"
+
+[node name="TypeLabel" type="Label" parent="HBoxContainer/Content/Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.5, 0.8, 0.5, 1)
+text = "[日常]"
+
+[node name="Description" type="Label" parent="HBoxContainer/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.7, 0.7, 0.8, 1)
+text = "任务描述"
+autowrap_mode = 2
+
+[node name="ProgressContainer" type="HBoxContainer" parent="HBoxContainer/Content"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ProgressBar" type="ProgressBar" parent="HBoxContainer/Content/ProgressContainer"]
+custom_minimum_size = Vector2(200, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100.0
+value = 50.0
+show_percentage = false
+
+[node name="ProgressLabel" type="Label" parent="HBoxContainer/Content/ProgressContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "0/10"
+
+[node name="RewardLabel" type="Label" parent="HBoxContainer/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.9, 0.8, 0.3, 1)
+text = "奖励: 100 金币, 50 经验"
+
+[node name="ClaimButton" type="Button" parent="HBoxContainer"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_vertical = 4
+text = "领取"

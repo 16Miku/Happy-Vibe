@@ -101,6 +101,29 @@ signal achievement_progress(achievement_id: String, current: int, target: int)
 ## 称号获得
 signal title_earned(title_id: String)
 
+# ==================== 任务相关信号 ====================
+
+## 任务接取
+signal quest_accepted(quest_id: String)
+
+## 任务进度更新
+signal quest_progress_updated(quest_id: String, current: int, target: int)
+
+## 任务完成
+signal quest_completed(quest_id: String)
+
+## 任务奖励领取
+signal quest_reward_claimed(quest_id: String, rewards: Dictionary)
+
+## 日常任务刷新
+signal daily_quests_refreshed()
+
+## 周常任务刷新
+signal weekly_quests_refreshed()
+
+## 进入心流状态（用于任务系统）
+signal flow_state_entered()
+
 # ==================== UI 相关信号 ====================
 
 ## 显示通知

@@ -89,3 +89,39 @@ text = "🔥"
 [node name="FlowLabel" type="Label" parent="FlowIndicator/HBox"]
 layout_mode = 2
 text = "心流状态 00:00"
+
+[node name="BottomBar" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -70.0
+offset_right = 200.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="QuestButton" type="Button" parent="BottomBar"]
+custom_minimum_size = Vector2(80, 50)
+layout_mode = 2
+text = "任务"
+
+[node name="DecorationButton" type="Button" parent="BottomBar"]
+custom_minimum_size = Vector2(80, 50)
+layout_mode = 2
+text = "装饰"
+
+[node name="SeasonButton" type="Button" parent="BottomBar"]
+custom_minimum_size = Vector2(80, 50)
+layout_mode = 2
+text = "赛季"
+
+[node name="SettingsButton" type="Button" parent="BottomBar"]
+custom_minimum_size = Vector2(80, 50)
+layout_mode = 2
+text = "设置"

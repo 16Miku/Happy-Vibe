@@ -275,7 +275,7 @@ func update_farm(farm_data: Dictionary) -> void:
 		return
 
 	current_request_type = "farm_update"
-	var url :=: "http://%s:%d/api/farm" % [DEFAULT_HOST, DEFAULT_PORT]
+	var url := "http://%s:%d/api/farm" % [DEFAULT_HOST, DEFAULT_PORT]
 	var body := JSON.stringify(farm_data)
 	var headers := ["Content-Type: application/json"]
 	http_request.request(url, headers, HTTPClient.METHOD_POST, body)
@@ -317,3 +317,54 @@ func _get_current_time() -> String:
 	"""获取当前时间字符串"""
 	var datetime_dict := Time.get_datetime_dict_from_system()
 	return "%02d:%02d:%02d" % [datetime_dict.hour, datetime_dict.minute, datetime_dict.second]
+
+
+## ========== 任务 API ==========
+
+signal quests_received(quests: Array)
+signal quest_progress_received(quest_id: String, progress: int)
+signal quest_completed_response(quest_id: String, rewards: Dictionary)
+
+func get_daily_quests() -> void:
+	"""获取日常任务列表"""
+	if not is_connected:
+		push_warning("[VibeClient] 未连接到 VibeHub")
+		return
+
+	current_request_type = "quests_daily"
+	var url := "http://%s:%d/api/quest/daily" % [DEFAULT_HOST, DEFAULT_PORT]
+	http_request.request(url)
+
+
+func get_weekly_quests() -> void:
+	"""获取周常任务列表"""
+	if not is_connected:
+		push_warning("[VibeClient] 未连接到 VibeHub")
+		return
+
+	current_request_type = "quests_weekly"
+	var url := "http://%s:%d/api/quest/weekly" % [DEFAULT_HOST, DEFAULT_PORT]
+	http_request.request(url)
+
+
+func get_quest_progress(quest_id: String) -> void:
+	"""获取任务进度"""
+	if not is_connected:
+		push_warning("[VibeClient] 未连接到 VibeHub")
+		return
+
+	current_request_type = "quest_progress"
+	var url := "http://%s:%d/api/quest/%s/progress" % [DEFAULT_HOST, DEFAULT_PORT, quest_id]
+	http_request.request(url)
+
+
+func complete_quest(quest_id: String) -> void:
+	"""完成任务并领取奖励"""
+	if not is_connected:
+		push_warning("[VibeClient] 未连接到 VibeHub")
+		return
+
+	current_request_type = "quest_complete"
+	var url := "http://%s:%d/api/quest/%s/complete" % [DEFAULT_HOST, DEFAULT_PORT, quest_id]
+	var headers := ["Content-Type: application/json"]
+	http_request.request(url, headers, HTTPClient.METHOD_POST, "")
