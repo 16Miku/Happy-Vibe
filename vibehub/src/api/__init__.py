@@ -10,7 +10,7 @@ from .farm import router as farm_router
 from .friends import router as friends_router
 from .guilds import router as guilds_router
 from .health import router as health_router
-from .leaderboards import router as leaderboards_router
+from .leaderboards import router as leaderboard_router
 from .market import router as market_router
 from .player import router as player_router
 from .shop import router as shop_router
@@ -26,7 +26,7 @@ __all__ = [
     "friends_router",
     "check_in_router",
     "guilds_router",
-    "leaderboards_router",
+    "leaderboard_router",
     "websocket_router",
     "shop_router",
     "market_router",

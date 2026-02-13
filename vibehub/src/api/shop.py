@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 from src.core.shop import shop_manager
 
-router = APIRouter(prefix="/api/shops", tags=["商店"])
+router = APIRouter(prefix="/api/shop", tags=["shop"])
 
 
 class BuyRequest(BaseModel):

@@ -16,7 +16,7 @@ from src.api import (
     friends_router,
     guilds_router,
     health_router,
-    leaderboards_router,
+    leaderboard_router,
     market_router,
     player_router,
     shop_router,
@@ -76,7 +76,7 @@ def create_app() -> FastAPI:
     # 注册路由 - 多人联机功能
     app.include_router(friends_router)
     app.include_router(guilds_router)
-    app.include_router(leaderboards_router)
+    app.include_router(leaderboard_router)
     app.include_router(websocket_router)
 
     # 注册路由 - 经济系统

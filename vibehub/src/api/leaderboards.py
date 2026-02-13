@@ -10,7 +10,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
-router = APIRouter(prefix="/api/leaderboards", tags=["leaderboards"])
+router = APIRouter(prefix="/api/leaderboard", tags=["leaderboard"])
 
 
 # ==================== 枚举和模型 ====================
