@@ -25,6 +25,13 @@ coverage.xml
 pytest_results.json
 api_test_results*.json
 test_*.py
+# 临时测试脚本
+check_*.py
+debug_*.py
+find_*.py
+final_*.py
+quick_*.py
+simple_*.py
 
 # ==================== IDE 和编辑器 ====================
 .idea/
