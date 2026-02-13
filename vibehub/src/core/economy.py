@@ -105,6 +105,26 @@ class EconomyController:
         """
         return max(0, int(amount * self._current_tax_rate))
 
+
+    def get_metrics(self, limit: int = 10) -> dict:
+        """获取经济指标"""
+        snapshot = self.monitor_economy_health(
+            total_money_supply=self._history[-1].total_money_supply if self._history else 0,
+            player_count=len([p for p in self._history if p.player_count > 0]),
+            transaction_volume=sum([p.transaction_volume for p in self._history]),
+            previous_money_supply=self._history[-2].total_money_supply if len(self._history) > 1 else None,
+        )
+
+        return {
+            "total_money_supply": snapshot.total_money_supply,
+            "avg_player_wealth": snapshot.avg_player_wealth,
+            "transaction_volume": snapshot.transaction_volume,
+            "inflation_rate": snapshot.inflation_rate,
+            "health_score": snapshot.health_score,
+            "recorded_at": snapshot.recorded_at.isoformat(),
+        }
+
+
     def monitor_economy_health(
         self,
         total_money_supply: int,

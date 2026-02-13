@@ -276,7 +276,7 @@ def get_db_session():
 
 # ============ 路由定义 ============
 
-router = APIRouter(prefix="/api/achievements", tags=["achievements"])
+router = APIRouter(prefix="/api/achievement", tags=["achievement"])
 
 
 @router.get("", response_model=AchievementListResponse)

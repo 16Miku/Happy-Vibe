@@ -87,6 +87,15 @@ async def get_economy_history(
     return [EconomyHistoryResponse(**h) for h in history]
 
 
+@router.get("/metrics", response_model=EconomyMetricsResponse)
+async def get_economy_metrics(
+    limit: int = Query(10, ge=1, le=100, description="返回记录数量")
+):
+    """获取经济指标"""
+    metrics = economy_controller.get_metrics(limit=limit)
+    return EconomyMetricsResponse(**metrics)
+
+
 @router.get("/prices", response_model=list[PriceIndexResponse])
 async def get_price_index():
     """获取当前物价指数"""
