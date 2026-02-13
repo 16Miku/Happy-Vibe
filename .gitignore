@@ -24,7 +24,8 @@ coverage.xml
 .hypothesis/
 pytest_results.json
 api_test_results*.json
-test_*.py
+# 根目录临时测试脚本（不包括 tests/ 目录下的正式测试）
+/test_*.py
 # 临时测试脚本
 check_*.py
 debug_*.py
