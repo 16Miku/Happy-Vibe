@@ -8,7 +8,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.api import (
     achievement_router,
     activity_router,
+    auction_router,
     check_in_router,
+    economy_router,
     energy_router,
     farm_router,
     friend_router,
@@ -16,7 +18,9 @@ from src.api import (
     guilds_router,
     health_router,
     leaderboards_router,
+    market_router,
     player_router,
+    shop_router,
     websocket_router,
 )
 from src.config.settings import settings
@@ -68,6 +72,12 @@ def create_app() -> FastAPI:
     app.include_router(guilds_router)
     app.include_router(leaderboards_router)
     app.include_router(websocket_router)
+
+    # 注册路由 - 经济系统
+    app.include_router(shop_router)
+    app.include_router(market_router)
+    app.include_router(auction_router)
+    app.include_router(economy_router)
 
     return app
 

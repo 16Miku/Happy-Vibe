@@ -23,7 +23,6 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
-    create_engine,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -69,6 +68,50 @@ class RelationshipType(str, Enum):
     BLOCKED = "blocked"  # 屏蔽
 
 
+class ShopType(str, Enum):
+    """商店类型枚举"""
+
+    SEED_SHOP = "seed_shop"  # 🌱 种子店 - 每日刷新
+    MATERIAL_SHOP = "material_shop"  # 🪓 建材店 - 每日刷新
+    ALCHEMY_SHOP = "alchemy_shop"  # 🧪 炼金店 - 每周刷新
+    GIFT_SHOP = "gift_shop"  # 🎁 礼品店 - 每周刷新
+    LIMITED_SHOP = "limited_shop"  # 🎪 限时商店 - 活动期间
+
+
+class RefreshCycle(str, Enum):
+    """刷新周期枚举"""
+
+    DAILY = "daily"  # 每日刷新
+    WEEKLY = "weekly"  # 每周刷新
+    EVENT = "event"  # 活动期间
+
+
+class ListingStatus(str, Enum):
+    """市场挂单状态枚举"""
+
+    ACTIVE = "active"  # 进行中
+    SOLD = "sold"  # 已售出
+    CANCELLED = "cancelled"  # 已取消
+    EXPIRED = "expired"  # 已过期
+
+
+class TransactionType(str, Enum):
+    """交易类型枚举"""
+
+    SHOP_BUY = "shop_buy"  # 商店购买
+    MARKET_BUY = "market_buy"  # 市场购买
+    MARKET_SELL = "market_sell"  # 市场出售
+    AUCTION_WIN = "auction_win"  # 拍卖中标
+
+
+class AuctionStatus(str, Enum):
+    """拍卖状态枚举"""
+
+    ACTIVE = "active"  # 进行中
+    ENDED = "ended"  # 已结束
+    CANCELLED = "cancelled"  # 已取消
+
+
 class FriendRequestStatus(str, Enum):
     """好友请求状态枚举"""
 
@@ -111,11 +154,11 @@ class Player(Base):
 
     # 连续签到
     consecutive_days: Mapped[int] = mapped_column(Integer, default=0)
-    last_login_date: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    last_login_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     # JSON 配置存储
-    settings_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    stats_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    settings_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    stats_json: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # 关系
     farm: Mapped[Optional["Farm"]] = relationship(
@@ -162,9 +205,9 @@ class Farm(Base):
     decoration_score: Mapped[int] = mapped_column(Integer, default=0)  # 装饰度
 
     # JSON 数据存储
-    plots_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # 地块数据
-    buildings_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # 建筑数据
-    decorations_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # 装饰数据
+    plots_json: Mapped[str | None] = mapped_column(Text, nullable=True)  # 地块数据
+    buildings_json: Mapped[str | None] = mapped_column(Text, nullable=True)  # 建筑数据
+    decorations_json: Mapped[str | None] = mapped_column(Text, nullable=True)  # 装饰数据
 
     last_updated: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
@@ -234,7 +277,7 @@ class InventoryItem(Base):
     quantity: Mapped[int] = mapped_column(Integer, default=1)
 
     # 元数据
-    metadata_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    metadata_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     acquired_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     # 关系
@@ -266,7 +309,7 @@ class Achievement(Base):
     target: Mapped[int] = mapped_column(Integer, default=1)
 
     # 时间戳
-    unlocked_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    unlocked_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     # 关系
@@ -294,7 +337,7 @@ class CodingActivity(Base):
 
     # 时间信息
     started_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-    ended_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     duration_seconds: Mapped[int] = mapped_column(Integer, default=0)
 
     # 数据来源
@@ -312,7 +355,7 @@ class CodingActivity(Base):
     flow_duration_seconds: Mapped[int] = mapped_column(Integer, default=0)
 
     # 活动指标 (JSON)
-    metrics_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    metrics_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     # 包含: lines_changed, files_affected, success_rate, tool_usage 等
 
     # 关系
@@ -382,7 +425,7 @@ class FriendRequest(Base):
     status: Mapped[str] = mapped_column(
         String(20), default=FriendRequestStatus.PENDING.value
     )
-    message: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)  # 附言
+    message: Mapped[str | None] = mapped_column(String(200), nullable=True)  # 附言
 
     # 时间戳
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
@@ -486,10 +529,255 @@ class CheckInRecord(Base):
     energy_reward: Mapped[int] = mapped_column(Integer, default=0)
     gold_reward: Mapped[int] = mapped_column(Integer, default=0)
     exp_reward: Mapped[int] = mapped_column(Integer, default=0)
-    special_item: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    special_item: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     # 时间戳
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     def __repr__(self) -> str:
         return f"<CheckInRecord(date={self.check_in_date.date()}, streak={self.consecutive_days})>"
+
+
+class ShopItem(Base):
+    """商店商品表
+
+    存储 NPC 商店的商品信息，包括价格、库存、刷新周期等。
+    """
+
+    __tablename__ = "shop_items"
+
+    item_id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    shop_type: Mapped[str] = mapped_column(String(30), nullable=False)  # 商店类型
+    item_name: Mapped[str] = mapped_column(String(100), nullable=False)  # 物品名称
+    item_type: Mapped[str] = mapped_column(String(50), nullable=False)  # 物品类型
+    base_price: Mapped[int] = mapped_column(Integer, nullable=False)  # 基础价格
+    current_price: Mapped[int] = mapped_column(Integer, nullable=False)  # 当前价格
+    stock: Mapped[int] = mapped_column(Integer, default=0)  # 当前库存
+    max_stock: Mapped[int] = mapped_column(Integer, default=99)  # 最大库存
+    refresh_cycle: Mapped[str] = mapped_column(
+        String(20), default=RefreshCycle.DAILY.value
+    )  # 刷新周期
+    last_refresh: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    is_available: Mapped[bool] = mapped_column(Boolean, default=True)  # 是否可购买
+    metadata_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    def __repr__(self) -> str:
+        return f"<ShopItem(name={self.item_name}, price={self.current_price}, stock={self.stock})>"
+
+
+class MarketListing(Base):
+    """市场挂单表
+
+    存储玩家在交易市场的挂单信息。
+    """
+
+    __tablename__ = "market_listings"
+
+    listing_id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    seller_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("players.player_id"), nullable=False
+    )
+    item_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    item_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    unit_price: Mapped[int] = mapped_column(Integer, nullable=False)  # 单价
+    total_price: Mapped[int] = mapped_column(Integer, nullable=False)  # 总价
+    listing_fee: Mapped[int] = mapped_column(Integer, default=0)  # 挂单手续费 (3%)
+    status: Mapped[str] = mapped_column(
+        String(20), default=ListingStatus.ACTIVE.value
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)  # 过期时间
+    sold_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    buyer_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    metadata_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # 关系
+    seller: Mapped["Player"] = relationship(
+        "Player", foreign_keys=[seller_id], backref="market_listings"
+    )
+
+    def __repr__(self) -> str:
+        return f"<MarketListing(item={self.item_name}, qty={self.quantity}, price={self.unit_price})>"
+
+
+class Transaction(Base):
+    """交易记录表
+
+    存储所有交易的历史记录，用于统计和审计。
+    """
+
+    __tablename__ = "transactions"
+
+    transaction_id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    transaction_type: Mapped[str] = mapped_column(String(30), nullable=False)
+    buyer_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    seller_id: Mapped[str] = mapped_column(String(36), nullable=False)  # NPC 商店为 "npc"
+    item_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    item_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    unit_price: Mapped[int] = mapped_column(Integer, nullable=False)
+    total_amount: Mapped[int] = mapped_column(Integer, nullable=False)
+    fee_amount: Mapped[int] = mapped_column(Integer, default=0)  # 手续费
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    def __repr__(self) -> str:
+        return f"<Transaction(type={self.transaction_type}, item={self.item_name}, amount={self.total_amount})>"
+
+
+class Auction(Base):
+    """拍卖表
+
+    存储拍卖信息，支持竞价和一口价。
+    """
+
+    __tablename__ = "auctions"
+
+    auction_id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    seller_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("players.player_id"), nullable=False
+    )
+    item_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    item_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    starting_price: Mapped[int] = mapped_column(Integer, nullable=False)  # 起拍价
+    current_price: Mapped[int] = mapped_column(Integer, nullable=False)  # 当前最高出价
+    buyout_price: Mapped[int | None] = mapped_column(Integer, nullable=True)  # 一口价
+    min_increment: Mapped[int] = mapped_column(Integer, default=1)  # 最小加价幅度
+    current_bidder_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    bid_count: Mapped[int] = mapped_column(Integer, default=0)  # 出价次数
+    status: Mapped[str] = mapped_column(
+        String(20), default=AuctionStatus.ACTIVE.value
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    ends_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)  # 结束时间
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    metadata_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # 关系
+    seller: Mapped["Player"] = relationship(
+        "Player", foreign_keys=[seller_id], backref="auctions"
+    )
+    bids: Mapped[list["Bid"]] = relationship(
+        "Bid", back_populates="auction", cascade="all, delete-orphan"
+    )
+
+    def __repr__(self) -> str:
+        return f"<Auction(item={self.item_name}, current={self.current_price}, bids={self.bid_count})>"
+
+
+class Bid(Base):
+    """出价记录表
+
+    存储拍卖的出价历史。
+    """
+
+    __tablename__ = "bids"
+
+    bid_id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    auction_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("auctions.auction_id"), nullable=False
+    )
+    bidder_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("players.player_id"), nullable=False
+    )
+    bid_amount: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    is_winning: Mapped[bool] = mapped_column(Boolean, default=False)  # 是否为中标出价
+
+    # 关系
+    auction: Mapped["Auction"] = relationship("Auction", back_populates="bids")
+    bidder: Mapped["Player"] = relationship(
+        "Player", foreign_keys=[bidder_id], backref="bids"
+    )
+
+    def __repr__(self) -> str:
+        return f"<Bid(amount={self.bid_amount}, winning={self.is_winning})>"
+
+
+class PriceHistory(Base):
+    """价格历史表
+
+    存储物品价格变化历史，用于市场分析。
+    """
+
+    __tablename__ = "price_history"
+
+    record_id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    item_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    item_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    price: Mapped[int] = mapped_column(Integer, nullable=False)
+    volume: Mapped[int] = mapped_column(Integer, default=0)  # 交易量
+    recorded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    def __repr__(self) -> str:
+        return f"<PriceHistory(item={self.item_name}, price={self.price}, volume={self.volume})>"
+
+
+class EconomyMetrics(Base):
+    """经济指标表
+
+    存储经济健康度指标，用于动态调整。
+    """
+
+    __tablename__ = "economy_metrics"
+
+    metric_id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    total_money_supply: Mapped[int] = mapped_column(Integer, default=0)  # 总货币供应量
+    avg_player_wealth: Mapped[float] = mapped_column(Float, default=0.0)  # 平均玩家财富
+    transaction_volume: Mapped[int] = mapped_column(Integer, default=0)  # 交易量
+    inflation_rate: Mapped[float] = mapped_column(Float, default=0.0)  # 通胀率
+    health_score: Mapped[float] = mapped_column(Float, default=100.0)  # 经济健康度 (0-100)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    def __repr__(self) -> str:
+        return f"<EconomyMetrics(health={self.health_score}, inflation={self.inflation_rate})>"
+
+
+# 商店商品配置数据
+SEED_SHOP_ITEMS = {
+    "variable_grass_seed": {"name": "变量草种子", "price": 5, "stock": 99},
+    "function_flower_seed": {"name": "函数花种子", "price": 25, "stock": 50},
+    "class_tree_seed": {"name": "类之树种子", "price": 100, "stock": 20},
+    "api_orchid_seed": {"name": "API兰种子", "price": 75, "stock": 30},
+    "bug_mushroom_seed": {"name": "Bug菇种子", "price": 15, "stock": 75},
+    "component_sunflower_seed": {"name": "组件向日葵种子", "price": 50, "stock": 40},
+    "algorithm_rose_seed": {"name": "算法玫瑰种子", "price": 200, "stock": 10},
+    "ai_divine_flower_seed": {"name": "AI神花种子", "price": 500, "stock": 5},
+}
+
+MATERIAL_SHOP_ITEMS = {
+    "wood": {"name": "木材", "price": 2, "stock": 200},
+    "stone": {"name": "石材", "price": 3, "stock": 200},
+    "iron_ingot": {"name": "铁锭", "price": 10, "stock": 100},
+    "brick": {"name": "砖块", "price": 5, "stock": 150},
+    "glass": {"name": "玻璃", "price": 8, "stock": 80},
+}
+
+ALCHEMY_SHOP_ITEMS = {
+    "growth_potion": {"name": "生长药水", "price": 50, "stock": 10},
+    "quality_enhancer": {"name": "品质提升剂", "price": 100, "stock": 5},
+    "flow_catalyst": {"name": "心流催化剂", "price": 200, "stock": 3},
+    "rare_recipe": {"name": "稀有配方", "price": 500, "stock": 1},
+}
+
+GIFT_SHOP_ITEMS = {
+    "friendship_flower": {"name": "友谊之花", "price": 30, "stock": 20},
+    "thank_you_card": {"name": "感谢卡", "price": 10, "stock": 50},
+    "celebration_cake": {"name": "庆祝蛋糕", "price": 80, "stock": 10},
+    "lucky_charm": {"name": "幸运符", "price": 150, "stock": 5},
+}
