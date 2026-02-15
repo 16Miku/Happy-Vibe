@@ -21,6 +21,7 @@ from src.api import (
     leaderboard_v2_router,
     market_router,
     player_router,
+    pvp_router,
     quest_router,
     season_router,
     shop_router,
@@ -84,6 +85,7 @@ def create_app() -> FastAPI:
     app.include_router(leaderboard_v2_router)  # 新版排行榜 (基于赛季)
     app.include_router(season_router)  # 赛季管理
     app.include_router(websocket_router)
+    app.include_router(pvp_router)
 
     # 注册路由 - 经济系统
     app.include_router(shop_router)

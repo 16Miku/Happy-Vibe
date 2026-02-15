@@ -15,6 +15,7 @@ from .leaderboards import router as leaderboard_router
 from .leaderboard import router as leaderboard_v2_router
 from .market import router as market_router
 from .player import router as player_router
+from .pvp import router as pvp_router
 from .quest import router as quest_router
 from .season import router as season_router
 from .shop import router as shop_router
@@ -40,4 +41,5 @@ __all__ = [
     "economy_router",
     "quest_router",
     "event_router",
+    "pvp_router",
 ]
