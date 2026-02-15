@@ -972,3 +972,675 @@ DEFAULT_DAILY_QUESTS = [
         "reward_json": '{"gold": 30, "exp": 20}',
     },
 ]
+
+
+# ============================================================
+# Phase 6: 运营/优化系统 - 枚举类型
+# ============================================================
+
+
+class AchievementCategory(str, Enum):
+    """成就类别枚举"""
+
+    CODING = "coding"  # 编程成就
+    FARMING = "farming"  # 农场成就
+    SOCIAL = "social"  # 社交成就
+    ECONOMY = "economy"  # 经济成就
+    SPECIAL = "special"  # 特殊成就
+
+
+class AchievementTier(str, Enum):
+    """成就稀有度枚举"""
+
+    COMMON = "common"  # 普通
+    RARE = "rare"  # 稀有
+    EPIC = "epic"  # 史诗
+    LEGENDARY = "legendary"  # 传说
+
+
+class GuildRole(str, Enum):
+    """公会角色枚举"""
+
+    LEADER = "leader"  # 会长
+    OFFICER = "officer"  # 干部
+    MEMBER = "member"  # 成员
+
+
+class GuildJoinType(str, Enum):
+    """公会加入方式枚举"""
+
+    OPEN = "open"  # 开放加入
+    CLOSED = "closed"  # 关闭加入
+    INVITE_ONLY = "invite_only"  # 仅邀请
+
+
+class GuildWarType(str, Enum):
+    """公会战类型枚举"""
+
+    TERRITORY = "territory"  # 领地争夺
+    RESOURCE = "resource"  # 资源争夺
+    HONOR = "honor"  # 荣耀对决
+
+
+class GuildWarStatus(str, Enum):
+    """公会战状态枚举"""
+
+    PREPARING = "preparing"  # 准备中
+    ACTIVE = "active"  # 进行中
+    FINISHED = "finished"  # 已结束
+
+
+class SeasonType(str, Enum):
+    """赛季类型枚举"""
+
+    REGULAR = "regular"  # 常规赛季
+    SPECIAL = "special"  # 特殊赛季
+    CHAMPIONSHIP = "championship"  # 锦标赛
+
+
+class LeaderboardType(str, Enum):
+    """排行榜类型枚举"""
+
+    INDIVIDUAL = "individual"  # 个人排行
+    GUILD = "guild"  # 公会排行
+    ACHIEVEMENT = "achievement"  # 成就排行
+
+
+class PVPMatchType(str, Enum):
+    """PVP对战类型枚举"""
+
+    DUEL = "duel"  # 决斗 (1v1)
+    ARENA = "arena"  # 竞技场 (1v1排名赛)
+    TOURNAMENT = "tournament"  # 锦标赛
+
+
+class PVPMatchStatus(str, Enum):
+    """PVP对战状态枚举"""
+
+    WAITING = "waiting"  # 等待中
+    ACTIVE = "active"  # 进行中
+    FINISHED = "finished"  # 已结束
+    CANCELLED = "cancelled"  # 已取消
+
+
+# ============================================================
+# Phase 6: 运营/优化系统 - 数据模型
+# ============================================================
+
+
+class AchievementDefinition(Base):
+    """成就定义表
+
+    存储成就的基本定义，包括类别、稀有度、解锁条件等。
+    """
+
+    __tablename__ = "achievement_definitions"
+
+    achievement_id: Mapped[str] = mapped_column(
+        String(50), primary_key=True
+    )  # 成就标识符
+    category: Mapped[str] = mapped_column(
+        String(20), default=AchievementCategory.CODING.value
+    )  # 成就类别
+    tier: Mapped[str] = mapped_column(
+        String(20), default=AchievementTier.COMMON.value
+    )  # 稀有度
+
+    # 标题和描述
+    title: Mapped[str] = mapped_column(String(100), nullable=False)  # 英文标题
+    title_zh: Mapped[str] = mapped_column(String(100), nullable=False)  # 中文标题
+    description: Mapped[str] = mapped_column(Text, nullable=False)  # 成就描述
+    icon: Mapped[str | None] = mapped_column(String(100), nullable=True)  # 图标路径
+
+    # 解锁条件
+    requirement_type: Mapped[str] = mapped_column(String(50), nullable=False)  # 条件类型
+    requirement_param: Mapped[str | None] = mapped_column(Text, nullable=True)  # 条件参数 (JSON)
+
+    # 奖励配置 (JSON格式: {"gold": 100, "exp": 50, "diamonds": 5})
+    reward_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # 显示设置
+    is_hidden: Mapped[bool] = mapped_column(Boolean, default=False)  # 是否隐藏（满足条件前不显示）
+    is_secret: Mapped[bool] = mapped_column(Boolean, default=False)  # 是否秘密（不显示详情）
+    display_order: Mapped[int] = mapped_column(Integer, default=0)  # 显示顺序
+
+    # 时间戳
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+    # 关系
+    progress_records: Mapped[list["AchievementProgress"]] = relationship(
+        "AchievementProgress", back_populates="achievement_def", cascade="all, delete-orphan"
+    )
+
+    def __repr__(self) -> str:
+        return f"<AchievementDefinition(id={self.achievement_id}, title={self.title_zh}, tier={self.tier})>"
+
+
+class AchievementProgress(Base):
+    """成就进度表
+
+    存储玩家的成就进度，包括当前值、目标值、解锁状态等。
+    """
+
+    __tablename__ = "achievement_progress"
+
+    progress_id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    player_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("players.player_id"), nullable=False
+    )
+    achievement_id: Mapped[str] = mapped_column(
+        String(50), ForeignKey("achievement_definitions.achievement_id"), nullable=False
+    )
+
+    # 进度信息
+    current_value: Mapped[int] = mapped_column(Integer, default=0)  # 当前进度值
+    target_value: Mapped[int] = mapped_column(Integer, default=1)  # 目标值
+    progress_percent: Mapped[float] = mapped_column(Float, default=0.0)  # 进度百分比 (0-100)
+
+    # 状态
+    is_unlocked: Mapped[bool] = mapped_column(Boolean, default=False)  # 是否已解锁
+    is_completed: Mapped[bool] = mapped_column(Boolean, default=False)  # 是否已完成
+    is_claimed: Mapped[bool] = mapped_column(Boolean, default=False)  # 是否已领取奖励
+
+    # 时间戳
+    started_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    claimed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    # 关系
+    player: Mapped["Player"] = relationship(
+        "Player", foreign_keys=[player_id], backref="achievement_progress"
+    )
+    achievement_def: Mapped["AchievementDefinition"] = relationship(
+        "AchievementDefinition", back_populates="progress_records"
+    )
+
+    def __repr__(self) -> str:
+        status = "✓" if self.is_claimed else ("🔓" if self.is_completed else f"{self.current_value}/{self.target_value}")
+        return f"<AchievementProgress(achievement={self.achievement_id}, status={status})>"
+
+
+class Guild(Base):
+    """公会表
+
+    存储公会的基本信息，包括等级、成员、资金等。
+    """
+
+    __tablename__ = "guilds"
+
+    guild_id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    guild_name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    guild_name_zh: Mapped[str | None] = mapped_column(String(50), nullable=True)  # 中文名称
+
+    # 领导者
+    leader_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("players.player_id"), nullable=False
+    )
+
+    # 公会信息
+    description: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    icon: Mapped[str | None] = mapped_column(String(100), nullable=True)  # 公会图标
+
+    # 等级系统
+    level: Mapped[int] = mapped_column(Integer, default=1)  # 公会等级
+    exp: Mapped[int] = mapped_column(Integer, default=0)  # 公会经验
+
+    # 成员管理
+    member_count: Mapped[int] = mapped_column(Integer, default=1)  # 当前成员数
+    max_members: Mapped[int] = mapped_column(Integer, default=20)  # 最大成员数
+
+    # 资源
+    contribution_points: Mapped[int] = mapped_column(Integer, default=0)  # 总贡献点
+    guild_funds: Mapped[int] = mapped_column(Integer, default=0)  # 公会资金
+
+    # 加入设置
+    join_type: Mapped[str] = mapped_column(
+        String(20), default=GuildJoinType.OPEN.value
+    )  # 加入方式
+    min_level: Mapped[int] = mapped_column(Integer, default=1)  # 最低加入等级
+
+    # 时间戳
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    disbanded_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    # 关系
+    leader: Mapped["Player"] = relationship(
+        "Player", foreign_keys=[leader_id], backref="led_guilds"
+    )
+    members: Mapped[list["GuildMember"]] = relationship(
+        "GuildMember", back_populates="guild", cascade="all, delete-orphan"
+    )
+
+    def __repr__(self) -> str:
+        return f"<Guild(name={self.guild_name}, level={self.level}, members={self.member_count})>"
+
+
+class GuildMember(Base):
+    """公会成员表
+
+    存储玩家在公会中的成员信息。
+    """
+
+    __tablename__ = "guild_members"
+
+    membership_id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    guild_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("guilds.guild_id"), nullable=False
+    )
+    player_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("players.player_id"), nullable=False
+    )
+
+    # 角色和头衔
+    role: Mapped[str] = mapped_column(
+        String(20), default=GuildRole.MEMBER.value
+    )  # 公会角色
+    title: Mapped[str | None] = mapped_column(String(50), nullable=True)  # 自定义头衔
+
+    # 贡献
+    contribution_points: Mapped[int] = mapped_column(Integer, default=0)  # 总贡献点
+    weekly_contribution: Mapped[int] = mapped_column(Integer, default=0)  # 本周贡献
+
+    # 状态
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)  # 是否活跃
+
+    # 时间戳
+    joined_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    left_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    # 关系
+    guild: Mapped["Guild"] = relationship("Guild", back_populates="members")
+    player: Mapped["Player"] = relationship(
+        "Player", foreign_keys=[player_id], backref="guild_memberships"
+    )
+
+    def __repr__(self) -> str:
+        return f"<GuildMember(player_id={self.player_id}, role={self.role}, contribution={self.contribution_points})>"
+
+
+class GuildWar(Base):
+    """公会战表
+
+    存储公会战的赛事信息。
+    """
+
+    __tablename__ = "guild_wars"
+
+    war_id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    war_name: Mapped[str] = mapped_column(String(100), nullable=False)  # 赛事名称
+    war_type: Mapped[str] = mapped_column(
+        String(20), default=GuildWarType.HONOR.value
+    )  # 战斗类型
+
+    # 对战公会
+    guild_a_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("guilds.guild_id"), nullable=False
+    )
+    guild_b_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("guilds.guild_id"), nullable=False
+    )
+
+    # 分数
+    score_a: Mapped[int] = mapped_column(Integer, default=0)  # 公会A得分
+    score_b: Mapped[int] = mapped_column(Integer, default=0)  # 公会B得分
+    target_score: Mapped[int] = mapped_column(Integer, default=1000)  # 目标分数
+
+    # 状态
+    status: Mapped[str] = mapped_column(
+        String(20), default=GuildWarStatus.PREPARING.value
+    )  # 战斗状态
+    winner_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("guilds.guild_id"), nullable=True
+    )  # 获胜公会ID
+
+    # 时间
+    start_time: Mapped[datetime] = mapped_column(DateTime, nullable=False)  # 开始时间
+    end_time: Mapped[datetime] = mapped_column(DateTime, nullable=False)  # 结束时间
+    duration_hours: Mapped[int] = mapped_column(Integer, default=24)  # 持续小时数
+
+    # 奖励
+    reward_pool: Mapped[int] = mapped_column(Integer, default=0)  # 奖励池
+
+    # 时间戳
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    # 关系
+    guild_a: Mapped["Guild"] = relationship(
+        "Guild", foreign_keys=[guild_a_id], backref="wars_as_a"
+    )
+    guild_b: Mapped["Guild"] = relationship(
+        "Guild", foreign_keys=[guild_b_id], backref="wars_as_b"
+    )
+    winner: Mapped["Guild | None"] = relationship(
+        "Guild", foreign_keys=[winner_id], backref="wars_won"
+    )
+    participants: Mapped[list["GuildWarParticipant"]] = relationship(
+        "GuildWarParticipant", back_populates="war", cascade="all, delete-orphan"
+    )
+
+    def __repr__(self) -> str:
+        return f"<GuildWar(name={self.war_name}, score={self.score_a}:{self.score_b}, status={self.status})>"
+
+
+class GuildWarParticipant(Base):
+    """公会战参与记录表
+
+    存储玩家在公会战中的参与记录和个人成绩。
+    """
+
+    __tablename__ = "guild_war_participants"
+
+    participation_id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    war_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("guild_wars.war_id"), nullable=False
+    )
+    player_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("players.player_id"), nullable=False
+    )
+    guild_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("guilds.guild_id"), nullable=False
+    )  # 代表的公会
+
+    # 战绩
+    score: Mapped[int] = mapped_column(Integer, default=0)  # 个人得分
+    battles_won: Mapped[int] = mapped_column(Integer, default=0)  # 获胜场数
+    damage_dealt: Mapped[int] = mapped_column(Integer, default=0)  # 造成伤害
+
+    # 奖励
+    personal_reward_claimed: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # 时间戳
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    # 关系
+    war: Mapped["GuildWar"] = relationship("GuildWar", back_populates="participants")
+    player: Mapped["Player"] = relationship(
+        "Player", foreign_keys=[player_id], backref="guild_war_participations"
+    )
+    guild: Mapped["Guild"] = relationship(
+        "Guild", foreign_keys=[guild_id], backref="war_participations"
+    )
+
+    def __repr__(self) -> str:
+        return f"<GuildWarParticipant(player_id={self.player_id}, score={self.score}, wins={self.battles_won})>"
+
+
+class Season(Base):
+    """赛季表
+
+    存储赛季的基本信息，包括时间、类型、奖励等。
+    """
+
+    __tablename__ = "seasons"
+
+    season_id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    season_name: Mapped[str] = mapped_column(String(100), nullable=False)  # 赛季名称
+    season_number: Mapped[int] = mapped_column(Integer, nullable=False)  # 赛季编号
+
+    # 时间
+    start_time: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    end_time: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+    # 赛季类型
+    season_type: Mapped[str] = mapped_column(
+        String(20), default=SeasonType.REGULAR.value
+    )
+
+    # 奖励配置 (JSON格式)
+    reward_tiers: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # 状态
+    is_active: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # 时间戳
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    # 关系
+    leaderboards: Mapped[list["Leaderboard"]] = relationship(
+        "Leaderboard", back_populates="season", cascade="all, delete-orphan"
+    )
+    pvp_rankings: Mapped[list["PVPRanking"]] = relationship(
+        "PVPRanking", back_populates="season", cascade="all, delete-orphan"
+    )
+
+    def __repr__(self) -> str:
+        return f"<Season(name={self.season_name}, number={self.season_number}, active={self.is_active})>"
+
+
+class Leaderboard(Base):
+    """排行榜表
+
+    存储排行榜数据，支持个人、公会、成就等多种排行类型。
+    """
+
+    __tablename__ = "leaderboards"
+
+    leaderboard_id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    season_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("seasons.season_id"), nullable=False
+    )
+
+    # 排行榜类型
+    leaderboard_type: Mapped[str] = mapped_column(
+        String(20), default=LeaderboardType.INDIVIDUAL.value
+    )
+
+    # 排行数据 (JSON格式: [{"rank": 1, "entity_id": "xxx", "score": 1000}, ...])
+    rankings_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # 更新设置
+    last_updated: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    update_frequency: Mapped[str] = mapped_column(String(20), default="hourly")  # hourly/daily/weekly
+
+    # 时间戳
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    # 关系
+    season: Mapped["Season"] = relationship("Season", back_populates="leaderboards")
+    snapshots: Mapped[list["LeaderboardSnapshot"]] = relationship(
+        "LeaderboardSnapshot", back_populates="leaderboard", cascade="all, delete-orphan"
+    )
+
+    def __repr__(self) -> str:
+        return f"<Leaderboard(type={self.leaderboard_type}, updated={self.last_updated})>"
+
+
+class LeaderboardSnapshot(Base):
+    """排行榜快照表
+
+    存储排行榜的历史快照，用于数据分析和回溯。
+    """
+
+    __tablename__ = "leaderboard_snapshots"
+
+    snapshot_id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    leaderboard_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("leaderboards.leaderboard_id"), nullable=False
+    )
+    season_id: Mapped[str] = mapped_column(String(36), nullable=False)  # 冗余字段，方便查询
+
+    # 快照时间
+    snapshot_time: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    # 排行数据 (JSON格式)
+    rankings_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # 时间戳
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    # 关系
+    leaderboard: Mapped["Leaderboard"] = relationship("Leaderboard", back_populates="snapshots")
+
+    def __repr__(self) -> str:
+        return f"<LeaderboardSnapshot(leaderboard_id={self.leaderboard_id}, time={self.snapshot_time})>"
+
+
+class PVPMatch(Base):
+    """PVP对战记录表
+
+    存储玩家之间的PVP对战记录。
+    """
+
+    __tablename__ = "pvp_matches"
+
+    match_id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    match_type: Mapped[str] = mapped_column(
+        String(20), default=PVPMatchType.DUEL.value
+    )  # 对战类型
+
+    # 对战双方
+    player_a_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("players.player_id"), nullable=False
+    )
+    player_b_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("players.player_id"), nullable=False
+    )
+
+    # 胜负
+    winner_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("players.player_id"), nullable=True
+    )  # 获胜玩家ID (None表示平局)
+
+    # 分数
+    score_a: Mapped[int] = mapped_column(Integer, default=0)
+    score_b: Mapped[int] = mapped_column(Integer, default=0)
+
+    # 状态
+    status: Mapped[str] = mapped_column(
+        String(20), default=PVPMatchStatus.WAITING.value
+    )
+
+    # 对战详情
+    duration_seconds: Mapped[int] = mapped_column(Integer, default=0)  # 对战时长
+    moves_a: Mapped[int] = mapped_column(Integer, default=0)  # 玩家A行动次数
+    moves_b: Mapped[int] = mapped_column(Integer, default=0)  # 玩家B行动次数
+
+    # 观战设置
+    spectator_count: Mapped[int] = mapped_column(Integer, default=0)  # 观战人数
+    allow_spectate: Mapped[bool] = mapped_column(Boolean, default=True)  # 是否允许观战
+
+    # 时间戳
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    # 关系
+    player_a: Mapped["Player"] = relationship(
+        "Player", foreign_keys=[player_a_id], backref="pvp_matches_as_a"
+    )
+    player_b: Mapped["Player"] = relationship(
+        "Player", foreign_keys=[player_b_id], backref="pvp_matches_as_b"
+    )
+    winner: Mapped["Player | None"] = relationship(
+        "Player", foreign_keys=[winner_id], backref="pvp_wins"
+    )
+    spectators: Mapped[list["PVPSpectator"]] = relationship(
+        "PVPSpectator", back_populates="match", cascade="all, delete-orphan"
+    )
+
+    def __repr__(self) -> str:
+        return f"<PVPMatch(type={self.match_type}, status={self.status}, score={self.score_a}:{self.score_b})>"
+
+
+class PVPSpectator(Base):
+    """PVP观战记录表
+
+    存储玩家观战PVP对战的记录。
+    """
+
+    __tablename__ = "pvp_spectators"
+
+    spectator_id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    match_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("pvp_matches.match_id"), nullable=False
+    )
+    player_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("players.player_id"), nullable=False
+    )
+
+    # 时间
+    joined_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    left_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    # 关系
+    match: Mapped["PVPMatch"] = relationship("PVPMatch", back_populates="spectators")
+    player: Mapped["Player"] = relationship(
+        "Player", foreign_keys=[player_id], backref="pvp_spectating"
+    )
+
+    def __repr__(self) -> str:
+        return f"<PVPSpectator(player_id={self.player_id}, match_id={self.match_id})>"
+
+
+class PVPRanking(Base):
+    """PVP积分排名表
+
+    存储玩家的PVP积分和排名数据。
+    """
+
+    __tablename__ = "pvp_rankings"
+
+    ranking_id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    season_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("seasons.season_id"), nullable=False
+    )
+    player_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("players.player_id"), nullable=False, unique=True
+    )
+
+    # ELO积分
+    rating: Mapped[int] = mapped_column(Integer, default=1000)  # 当前积分
+    max_rating: Mapped[int] = mapped_column(Integer, default=1000)  # 历史最高积分
+
+    # 对战统计
+    matches_played: Mapped[int] = mapped_column(Integer, default=0)  # 总场次
+    matches_won: Mapped[int] = mapped_column(Integer, default=0)  # 胜场
+    matches_lost: Mapped[int] = mapped_column(Integer, default=0)  # 负场
+    matches_drawn: Mapped[int] = mapped_column(Integer, default=0)  # 平场
+
+    # 连胜
+    current_streak: Mapped[int] = mapped_column(Integer, default=0)  # 当前连胜/连败
+    max_streak: Mapped[int] = mapped_column(Integer, default=0)  # 最高连胜
+
+    # 时间戳
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    # 关系
+    season: Mapped["Season"] = relationship("Season", back_populates="pvp_rankings")
+    player: Mapped["Player"] = relationship(
+        "Player", foreign_keys=[player_id], backref="pvp_rankings"
+    )
+
+    def __repr__(self) -> str:
+        win_rate = (
+            (self.matches_won / self.matches_played * 100) if self.matches_played > 0 else 0
+        )
+        return f"<PVPRanking(rating={self.rating}, wins={self.matches_won}/{self.matches_played}, win_rate={win_rate:.1f}%)>"
