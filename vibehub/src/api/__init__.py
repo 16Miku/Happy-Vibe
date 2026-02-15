@@ -12,9 +12,11 @@ from .friends import router as friends_router
 from .guilds import router as guilds_router
 from .health import router as health_router
 from .leaderboards import router as leaderboard_router
+from .leaderboard import router as leaderboard_v2_router
 from .market import router as market_router
 from .player import router as player_router
 from .quest import router as quest_router
+from .season import router as season_router
 from .shop import router as shop_router
 from .websocket import router as websocket_router
 
@@ -29,6 +31,8 @@ __all__ = [
     "check_in_router",
     "guilds_router",
     "leaderboard_router",
+    "leaderboard_v2_router",
+    "season_router",
     "websocket_router",
     "shop_router",
     "market_router",
