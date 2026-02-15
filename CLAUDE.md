@@ -91,8 +91,9 @@ vibe-kanban MCP 是一个任务管理系统，支持启动独立的 Claude Code 
 
 | 项目 | ID |
 |------|-----|
+| 组织ID | `06b32dcb-1bf1-41f9-934e-6b1b1b9f8360` |
 | 项目名称 | `Happy-Vibe` |
-| 项目ID | `3f101d13-0e36-4097-af11-e54734fc2694` |
+| 项目ID | `2b422040-034e-444d-a7bb-9243c049b494` |
 | 仓库ID | `e38a6122-023a-4e30-bbf5-b9499c2d3a8c` |
 | 基础分支 | `main` |
 
@@ -115,7 +116,7 @@ vibe-kanban MCP 是一个任务管理系统，支持启动独立的 Claude Code 
 ### 3.4 操作流程
 
 ```
-1. 创建任务 (MCP) → 2. 启动 workspace → 3. 独立 agent 执行 → 4. 自动合并到主分支 → 5. 代码审查
+1. Claude 创建任务 (MCP) → 2. 用户检查任务内容 → 3. 用户手动启动 workspace → 4. 独立 agent 执行 → 5. 自动合并到主分支 → 6. 代码审查
 ```
 
 **工作原理**:
@@ -123,6 +124,11 @@ vibe-kanban MCP 是一个任务管理系统，支持启动独立的 Claude Code 
 - 在独立工作区内执行开发
 - 完成后自动合并代码到主分支
 - 本地执行，非云端
+
+⚠️ **重要说明**：
+- `start_workspace_session` 的 `issue_id` 参数只用于链接工作空间到任务
+- **任务描述不会自动传递给执行 agent**
+- 因此采用"手动启动"流程：Claude 创建任务 → 用户在 vibe-kanban 界面检查并手动启动
 
 ### 3.5 任务描述规范
 
@@ -284,12 +290,22 @@ mcp__vibe_kanban__link_workspace(
 ├── Claude Code 日志适配器
 ├── 数据库模型设计
 ├── Godot 游戏框架
-└── UI 界面系统
+├── UI 界面系统
+├── Phase 6.2 成就系统完善（依赖 Phase 6.1 数据模型）✓
+├── Phase 6.3 公会系统（依赖 Phase 6.1 数据模型）✓
+├── Phase 6.4 排行榜与赛季（依赖 Phase 6.1 数据模型）✓
+└── Phase 6.5 PVP 竞技场（依赖 Phase 6.1 数据模型）✓
 
 需串行任务（有依赖）:
 ├── REST API 端点 → 依赖核心模块
 ├── 网络通信模块 → 依赖 API 端点
 └── 桌面监控器 → 依赖 API 端点
+
+Phase 6 并行开发（数据模型已就绪）:
+├── 6.2 成就系统完善 → AchievementDefinition, AchievementProgress API
+├── 6.3 公会系统 → Guild, GuildMember, GuildWar API
+├── 6.4 排行榜与赛季 → Season, Leaderboard API
+└── 6.5 PVP 竞技场 → PVPMatch, PVPRanking API, ELO 算法
 ```
 
 ---
@@ -552,20 +568,24 @@ B:\study\AI\Happy-Vibe\
 │   └── CLAUDE.md               # 开发规则（本文件）
 ├── Note/                       # 项目文档
 │   ├── Spec-Driven-Development.md  # 完整设计文档
-│   └── 开发指南.md              # 开发指南和进度
+│   ├── 开发指南.md              # 开发指南和进度
+│   └── 开发指南_phase6_detailed.md  # Phase 6 详细开发文档
 ├── vibehub/                    # VibeHub 本地服务
 │   ├── .venv/                  # Python 虚拟环境
 │   ├── src/                    # 源代码
 │   │   ├── api/                # API 路由
 │   │   ├── config/             # 配置
-│   │   ├── core/               # 核心逻辑（待开发）
-│   │   ├── adapters/           # 数据适配器（待开发）
-│   │   └── storage/            # 存储层（待开发）
+│   │   ├── core/               # 核心逻辑
+│   │   ├── adapters/           # 数据适配器
+│   │   ├── storage/            # 存储层
+│   │   ├── quest/              # 任务系统
+│   │   ├── event/              # 活动系统
+│   │   └── multiplayer/        # 多人联机系统
 │   ├── tests/                  # 测试文件
 │   ├── pyproject.toml          # 项目配置
 │   └── requirements.txt        # 依赖列表
-├── game/                       # Godot 游戏客户端（待开发）
-├── monitor/                    # 桌面监控器（待开发）
+├── game/                       # Godot 游戏客户端
+├── monitor/                    # 桌面监控器
 ├── .gitignore                  # Git 忽略规则
 └── CLAUDE.md                   # 根目录开发规则副本
 ```
@@ -599,6 +619,26 @@ B:\study\AI\Happy-Vibe\
 ---
 
 ## 十一、问题解决历史
+
+### 2026-02-16：vibe-kanban 任务描述不传递问题
+
+#### 问题描述
+使用 `create_issue` 创建任务时，详细描述已正确存储，但 `start_workspace_session` 启动工作空间后，执行 agent 没有收到任务描述信息。
+
+#### 根本原因
+`start_workspace_session` 工具的 `issue_id` 参数设计用于"链接"工作空间到任务，而非"传递"任务描述给执行 agent。执行 agent 只能收到 `title` 参数的内容。
+
+#### 解决方案
+采用手动启动流程：
+1. Claude 通过 MCP 创建任务（包含详细描述）
+2. 用户在 vibe-kanban 界面检查任务内容
+3. 用户手动启动工作空间
+
+#### 经验教训
+- 理解 MCP 工具的设计意图，`issue_id` 用于关联而非数据传递
+- 工作流需要根据工具实际行为调整
+
+---
 
 ### 2026-02-14：服务启动和 API 测试
 
