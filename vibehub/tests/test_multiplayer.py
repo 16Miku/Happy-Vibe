@@ -15,12 +15,11 @@ from src.main import app
 from src.multiplayer.connection_manager import ConnectionManager, connection_manager
 from src.multiplayer.models import (
     OnlineStatus,
-    FriendRequestStatus,
-    GuildRole,
     MessageType,
     AFFINITY_LEVELS,
     GUILD_LEVEL_CONFIG,
 )
+from src.storage.models import FriendRequestStatus, GuildRole
 
 
 # ==================== Fixtures ====================

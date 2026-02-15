@@ -1,6 +1,8 @@
 """多人联机系统数据模型
 
-定义好友、公会、消息等数据结构。
+定义好友、消息等数据结构。
+
+注意：Guild, GuildMember, Leaderboard 模型已迁移到 src/storage/models.py
 """
 
 import uuid
@@ -8,7 +10,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.storage.models import Base
@@ -31,14 +33,6 @@ class OnlineStatus(str, Enum):
     OFFLINE = "offline"  # 离线
 
 
-class GuildRole(str, Enum):
-    """公会角色"""
-
-    LEADER = "leader"  # 会长
-    OFFICER = "officer"  # 管理员
-    MEMBER = "member"  # 成员
-
-
 class MessageType(str, Enum):
     """消息类型"""
 
@@ -50,83 +44,6 @@ class MessageType(str, Enum):
 
 
 # ==================== 数据库模型 ====================
-
-
-class Guild(Base):
-    """公会表
-
-    存储公会基本信息。
-    """
-
-    __tablename__ = "guilds"
-
-    guild_id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=generate_uuid
-    )
-    name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
-    icon: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-
-    # 公会属性
-    level: Mapped[int] = mapped_column(Integer, default=1)
-    experience: Mapped[int] = mapped_column(Integer, default=0)
-    max_members: Mapped[int] = mapped_column(Integer, default=10)
-
-    # 公会领地
-    territory_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-
-    # 公会仓库
-    warehouse_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-
-    # 公会技能
-    skills_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-
-    # 统计数据
-    total_energy_contributed: Mapped[int] = mapped_column(Integer, default=0)
-    total_crops_harvested: Mapped[int] = mapped_column(Integer, default=0)
-
-    # 时间戳
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
-    )
-
-    # 关系
-    members: Mapped[list["GuildMember"]] = relationship(
-        "GuildMember", back_populates="guild", cascade="all, delete-orphan"
-    )
-
-    def __repr__(self) -> str:
-        return f"<Guild(name={self.name}, level={self.level})>"
-
-
-class GuildMember(Base):
-    """公会成员表
-
-    存储公会成员关系。
-    """
-
-    __tablename__ = "guild_members"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    guild_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("guilds.guild_id"), nullable=False
-    )
-    player_id: Mapped[str] = mapped_column(String(36), nullable=False, unique=True)
-
-    # 成员属性
-    role: Mapped[str] = mapped_column(String(20), default=GuildRole.MEMBER.value)
-    contribution: Mapped[int] = mapped_column(Integer, default=0)  # 贡献值
-
-    # 时间戳
-    joined_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    last_active_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-
-    # 关系
-    guild: Mapped["Guild"] = relationship("Guild", back_populates="members")
-
-    def __repr__(self) -> str:
-        return f"<GuildMember(player={self.player_id}, role={self.role})>"
 
 
 class Message(Base):
@@ -165,33 +82,6 @@ class Message(Base):
 
     def __repr__(self) -> str:
         return f"<Message(type={self.message_type}, from={self.sender_id})>"
-
-
-class Leaderboard(Base):
-    """排行榜快照表
-
-    存储排行榜数据快照，定期更新。
-    """
-
-    __tablename__ = "leaderboards"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    leaderboard_type: Mapped[str] = mapped_column(
-        String(50), nullable=False
-    )  # level, coding_time, harvest, wealth, flow_time
-    period: Mapped[str] = mapped_column(
-        String(20), nullable=False
-    )  # daily, weekly, monthly, all_time
-
-    # 排行数据 (JSON 数组)
-    rankings_json: Mapped[str] = mapped_column(Text, nullable=False)
-
-    # 时间戳
-    snapshot_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-
-    def __repr__(self) -> str:
-        return f"<Leaderboard(type={self.leaderboard_type}, period={self.period})>"
 
 
 # ==================== 公会等级配置 ====================

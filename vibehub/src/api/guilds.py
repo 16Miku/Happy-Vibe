@@ -11,7 +11,8 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from src.multiplayer.connection_manager import connection_manager
-from src.multiplayer.models import GUILD_LEVEL_CONFIG, GuildRole
+from src.multiplayer.models import GUILD_LEVEL_CONFIG
+from src.storage.models import GuildRole
 
 router = APIRouter(prefix="/api/guilds", tags=["guilds"])
 
