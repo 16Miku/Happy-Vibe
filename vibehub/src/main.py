@@ -15,6 +15,8 @@ from src.api import (
     event_router,
     farm_router,
     friends_router,
+    guild_router,
+    guild_war_router,
     guilds_router,
     health_router,
     leaderboard_router,
@@ -81,6 +83,8 @@ def create_app() -> FastAPI:
     # 注册路由 - 多人联机功能
     app.include_router(friends_router)
     app.include_router(guilds_router)
+    app.include_router(guild_router)
+    app.include_router(guild_war_router)
     app.include_router(leaderboard_router)
     app.include_router(leaderboard_v2_router)  # 新版排行榜 (基于赛季)
     app.include_router(season_router)  # 赛季管理

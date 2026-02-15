@@ -9,6 +9,8 @@ from .energy import router as energy_router
 from .event import router as event_router
 from .farm import router as farm_router
 from .friends import router as friends_router
+from .guild import router as guild_router
+from .guild_war import router as guild_war_router
 from .guilds import router as guilds_router
 from .health import router as health_router
 from .leaderboards import router as leaderboard_router
@@ -31,6 +33,8 @@ __all__ = [
     "friends_router",
     "check_in_router",
     "guilds_router",
+    "guild_router",
+    "guild_war_router",
     "leaderboard_router",
     "leaderboard_v2_router",
     "season_router",
