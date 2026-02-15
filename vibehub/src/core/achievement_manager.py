@@ -207,6 +207,7 @@ class AchievementManager:
             "icon": definition.icon,
             "is_hidden": definition.is_hidden,
             "is_secret": definition.is_secret,
+            "display_order": definition.display_order,
             "requirement_type": definition.requirement_type,
             "requirement_param": requirement_param,
             # 进度信息

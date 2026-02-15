@@ -7,41 +7,22 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from src.main import app
-from src.storage.database import Database
 from src.storage.models import AchievementDefinition, AchievementProgress, Player
 
 
 @pytest.fixture
-def test_db(tmp_path):
-    """创建测试数据库"""
-    db_path = str(tmp_path / "test.db")
-    db = Database(db_path)
-    db.create_tables()
-
+def test_player_with_progress(test_db, test_player):
+    """创建测试玩家并初始化成就进度"""
     # 初始化成就定义
-    with db.get_session() as session:
+    with test_db.get_session() as session:
         from src.core.achievement_manager import AchievementManager
+
         manager = AchievementManager(session)
         manager.initialize_achievements()
+        # 确保玩家有进度记录
+        manager.ensure_player_progress(test_player)
 
-    return db
-
-
-@pytest.fixture
-def test_player(test_db):
-    """创建测试玩家"""
-    with test_db.get_session() as session:
-        player = Player(
-            player_id="test-player-001",
-            username="test_user",
-            level=15,
-            gold=1000,
-            experience=500,
-        )
-        session.add(player)
-        session.commit()
-        session.refresh(player)
-        return player.player_id
+    return test_player
 
 
 class TestAchievementInitialization:
@@ -76,16 +57,15 @@ class TestGetAchievements:
         data = response.json()
         assert "achievements" in data
 
-    async def test_get_achievements_success(self, test_db, test_player, monkeypatch):
+    async def test_get_achievements_success(
+        self, test_player_with_progress
+    ):
         """测试成功获取成就列表"""
-        # 替换数据库实例
-        monkeypatch.setattr("src.api.achievement.get_db", lambda: test_db)
-
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             response = await client.get(
                 "/api/achievement",
-                params={"player_id": test_player},
+                params={"player_id": test_player_with_progress},
             )
 
         assert response.status_code == 200
@@ -95,17 +75,15 @@ class TestGetAchievements:
         assert len(data["achievements"]) >= 50
 
     async def test_get_achievements_with_category_filter(
-        self, test_db, test_player, monkeypatch
+        self, test_player_with_progress
     ):
         """测试按类别筛选成就"""
-        monkeypatch.setattr("src.api.achievement.get_db", lambda: test_db)
-
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             response = await client.get(
                 "/api/achievement",
                 params={
-                    "player_id": test_player,
+                    "player_id": test_player_with_progress,
                     "category": "coding",
                 },
             )
@@ -117,17 +95,15 @@ class TestGetAchievements:
             assert ach["category"] == "coding"
 
     async def test_get_achievements_with_tier_filter(
-        self, test_db, test_player, monkeypatch
+        self, test_player_with_progress
     ):
         """测试按稀有度筛选成就"""
-        monkeypatch.setattr("src.api.achievement.get_db", lambda: test_db)
-
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             response = await client.get(
                 "/api/achievement",
                 params={
-                    "player_id": test_player,
+                    "player_id": test_player_with_progress,
                     "tier": "legendary",
                 },
             )
@@ -139,18 +115,16 @@ class TestGetAchievements:
             assert ach["tier"] == "legendary"
 
     async def test_get_achievements_with_hidden(
-        self, test_db, test_player, monkeypatch
+        self, test_player_with_progress
     ):
         """测试包含隐藏成就"""
-        monkeypatch.setattr("src.api.achievement.get_db", lambda: test_db)
-
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             # 不包含隐藏成就
             response1 = await client.get(
                 "/api/achievement",
                 params={
-                    "player_id": test_player,
+                    "player_id": test_player_with_progress,
                     "include_hidden": False,
                 },
             )
@@ -159,7 +133,7 @@ class TestGetAchievements:
             response2 = await client.get(
                 "/api/achievement",
                 params={
-                    "player_id": test_player,
+                    "player_id": test_player_with_progress,
                     "include_hidden": True,
                 },
             )
@@ -178,16 +152,14 @@ class TestAchievementStats:
     """成就统计测试"""
 
     async def test_get_achievement_stats(
-        self, test_db, test_player, monkeypatch
+        self, test_player_with_progress
     ):
         """测试获取成就统计"""
-        monkeypatch.setattr("src.api.achievement.get_db", lambda: test_db)
-
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             response = await client.get(
                 "/api/achievement/stats",
-                params={"player_id": test_player},
+                params={"player_id": test_player_with_progress},
             )
 
         assert response.status_code == 200
@@ -215,31 +187,27 @@ class TestGetSingleAchievement:
     """获取单个成就详情测试"""
 
     async def test_get_achievement_not_found(
-        self, test_db, test_player, monkeypatch
+        self, test_player_with_progress
     ):
         """测试成就不存在时返回 404"""
-        monkeypatch.setattr("src.api.achievement.get_db", lambda: test_db)
-
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             response = await client.get(
                 "/api/achievement/non_existent",
-                params={"player_id": test_player},
+                params={"player_id": test_player_with_progress},
             )
 
         assert response.status_code == 404
 
     async def test_get_achievement_success(
-        self, test_db, test_player, monkeypatch
+        self, test_player_with_progress
     ):
         """测试成功获取成就详情"""
-        monkeypatch.setattr("src.api.achievement.get_db", lambda: test_db)
-
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             response = await client.get(
                 "/api/achievement/coding_first",
-                params={"player_id": test_player},
+                params={"player_id": test_player_with_progress},
             )
 
         assert response.status_code == 200
@@ -254,16 +222,14 @@ class TestUpdateProgress:
     """更新进度测试"""
 
     async def test_update_progress_creates_record(
-        self, test_db, test_player, monkeypatch
+        self, test_player_with_progress
     ):
         """测试更新进度时创建记录"""
-        monkeypatch.setattr("src.api.achievement.get_db", lambda: test_db)
-
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             response = await client.post(
                 "/api/achievement/coding_first/progress",
-                params={"player_id": test_player},
+                params={"player_id": test_player_with_progress},
                 json={"increment": 1},
             )
 
@@ -275,24 +241,22 @@ class TestUpdateProgress:
         assert data["newly_completed"] is True
 
     async def test_update_progress_increment(
-        self, test_db, test_player, monkeypatch
+        self, test_player_with_progress
     ):
         """测试增量更新进度"""
-        monkeypatch.setattr("src.api.achievement.get_db", lambda: test_db)
-
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             # 更新到 5
             response1 = await client.post(
                 "/api/achievement/coding_10/progress",
-                params={"player_id": test_player},
+                params={"player_id": test_player_with_progress},
                 json={"increment": 5},
             )
 
             # 再更新 3
             response2 = await client.post(
                 "/api/achievement/coding_10/progress",
-                params={"player_id": test_player},
+                params={"player_id": test_player_with_progress},
                 json={"increment": 3},
             )
 
@@ -306,16 +270,14 @@ class TestUpdateProgress:
         assert data2["current_value"] == 8
 
     async def test_update_progress_cap_at_target(
-        self, test_db, test_player, monkeypatch
+        self, test_player_with_progress
     ):
         """测试进度不超过目标"""
-        monkeypatch.setattr("src.api.achievement.get_db", lambda: test_db)
-
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             response = await client.post(
                 "/api/achievement/coding_first/progress",
-                params={"player_id": test_player},
+                params={"player_id": test_player_with_progress},
                 json={"increment": 100},
             )
 
@@ -330,16 +292,14 @@ class TestEventUpdate:
     """事件更新测试"""
 
     async def test_update_by_event(
-        self, test_db, test_player, monkeypatch
+        self, test_player_with_progress
     ):
         """测试通过事件更新进度"""
-        monkeypatch.setattr("src.api.achievement.get_db", lambda: test_db)
-
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             response = await client.post(
                 "/api/achievement/update",
-                params={"player_id": test_player},
+                params={"player_id": test_player_with_progress},
                 json={
                     "event_type": "coding_count",
                     "event_data": {"increment": 1},
@@ -352,17 +312,15 @@ class TestEventUpdate:
         assert "count" in data
 
     async def test_update_by_event_multiple_achievements(
-        self, test_db, test_player, monkeypatch
+        self, test_player_with_progress
     ):
         """测试一次事件更新多个成就"""
-        monkeypatch.setattr("src.api.achievement.get_db", lambda: test_db)
-
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             # 编程活动会更新多个编程类成就
             response = await client.post(
                 "/api/achievement/update",
-                params={"player_id": test_player},
+                params={"player_id": test_player_with_progress},
                 json={
                     "event_type": "coding_count",
                     "event_data": {"increment": 50},
@@ -379,16 +337,14 @@ class TestClaimReward:
     """领取奖励测试"""
 
     async def test_claim_reward_not_completed(
-        self, test_db, test_player, monkeypatch
+        self, test_player_with_progress
     ):
         """测试领取未完成成就的奖励"""
-        monkeypatch.setattr("src.api.achievement.get_db", lambda: test_db)
-
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             response = await client.post(
-                "/api/achievement/coding_first/claim",
-                params={"player_id": test_player},
+                "/api/achievement/coding_100/claim",
+                params={"player_id": test_player_with_progress},
             )
 
         assert response.status_code == 400
@@ -396,24 +352,22 @@ class TestClaimReward:
         assert "detail" in data
 
     async def test_claim_reward_success(
-        self, test_db, test_player, monkeypatch
+        self, test_player_with_progress
     ):
         """测试成功领取奖励"""
-        monkeypatch.setattr("src.api.achievement.get_db", lambda: test_db)
-
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             # 先完成成就
             await client.post(
                 "/api/achievement/coding_first/progress",
-                params={"player_id": test_player},
+                params={"player_id": test_player_with_progress},
                 json={"increment": 1},
             )
 
             # 领取奖励
             response = await client.post(
                 "/api/achievement/coding_first/claim",
-                params={"player_id": test_player},
+                params={"player_id": test_player_with_progress},
             )
 
         assert response.status_code == 200
@@ -424,28 +378,26 @@ class TestClaimReward:
         assert data["exp_rewarded"] == 50
 
     async def test_claim_reward_already_claimed(
-        self, test_db, test_player, monkeypatch
+        self, test_player_with_progress
     ):
         """测试重复领取奖励"""
-        monkeypatch.setattr("src.api.achievement.get_db", lambda: test_db)
-
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             # 完成并领取
             await client.post(
                 "/api/achievement/coding_10/progress",
-                params={"player_id": test_player},
+                params={"player_id": test_player_with_progress},
                 json={"increment": 10},
             )
             await client.post(
                 "/api/achievement/coding_10/claim",
-                params={"player_id": test_player},
+                params={"player_id": test_player_with_progress},
             )
 
             # 再次领取
             response = await client.post(
                 "/api/achievement/coding_10/claim",
-                params={"player_id": test_player},
+                params={"player_id": test_player_with_progress},
             )
 
         assert response.status_code == 400
@@ -457,16 +409,14 @@ class TestEnsureProgress:
     """确保进度记录测试"""
 
     async def test_ensure_player_progress(
-        self, test_db, test_player, monkeypatch
+        self, test_player_with_progress
     ):
         """测试确保玩家进度记录"""
-        monkeypatch.setattr("src.api.achievement.get_db", lambda: test_db)
-
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             response = await client.post(
                 "/api/achievement/ensure-progress",
-                params={"player_id": test_player},
+                params={"player_id": test_player_with_progress},
             )
 
         assert response.status_code == 200
@@ -483,17 +433,15 @@ class TestCategoryCombinations:
         ["coding", "farming", "social", "economy", "special"],
     )
     async def test_all_categories_have_achievements(
-        self, test_db, test_player, monkeypatch, category
+        self, test_player_with_progress, category
     ):
         """测试所有类别都有成就"""
-        monkeypatch.setattr("src.api.achievement.get_db", lambda: test_db)
-
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             response = await client.get(
                 "/api/achievement",
                 params={
-                    "player_id": test_player,
+                    "player_id": test_player_with_progress,
                     "category": category,
                 },
             )
@@ -511,17 +459,15 @@ class TestTierCombinations:
         ["common", "rare", "epic", "legendary"],
     )
     async def test_all_tiers_have_achievements(
-        self, test_db, test_player, monkeypatch, tier
+        self, test_player_with_progress, tier
     ):
         """测试所有稀有度都有成就"""
-        monkeypatch.setattr("src.api.achievement.get_db", lambda: test_db)
-
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             response = await client.get(
                 "/api/achievement",
                 params={
-                    "player_id": test_player,
+                    "player_id": test_player_with_progress,
                     "tier": tier,
                 },
             )
