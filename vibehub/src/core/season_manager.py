@@ -554,7 +554,7 @@ class SeasonManager:
             "end_time": season.end_time.isoformat(),
             "reward_tiers": reward_tiers,
             "is_active": season.is_active,
-            "created_at": season.created_at.isoformat(),
+            "created_at": season.created_at.isoformat() if season.created_at else None,
         }
 
     async def get_season_status(self, season_id: str) -> dict[str, Any]:
@@ -613,12 +613,13 @@ class SeasonManager:
         Returns:
             状态字符串
         """
-        if not season.is_active:
-            return "inactive"
-
+        # 先检查时间状态
         if now < season.start_time:
             return "upcoming"
         elif now > season.end_time:
             return "ended"
-        else:
+        # 时间在范围内，检查是否激活
+        elif season.is_active:
             return "active"
+        else:
+            return "inactive"
