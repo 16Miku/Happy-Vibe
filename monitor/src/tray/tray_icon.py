@@ -1,10 +1,8 @@
 """系统托盘图标模块."""
 
-import asyncio
 import threading
+from collections.abc import Callable
 from enum import Enum
-from io import BytesIO
-from typing import Callable
 
 from PIL import Image, ImageDraw
 from pystray import Icon, Menu, MenuItem

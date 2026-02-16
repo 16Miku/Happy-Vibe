@@ -1,7 +1,8 @@
 """通知系统模块."""
 
+import contextlib
+from collections.abc import Callable
 from enum import Enum
-from typing import Callable
 
 from plyer import notification
 
@@ -83,13 +84,11 @@ class Notifier:
 
         # 调用回调
         for callback in self._callbacks:
-            try:
+            with contextlib.suppress(Exception):
                 callback(notification_type, final_title, message)
-            except Exception:
-                pass
 
         # 发送系统通知
-        try:
+        with contextlib.suppress(Exception):
             notification.notify(
                 title=final_title,
                 message=message,
@@ -97,9 +96,6 @@ class Notifier:
                 app_icon=self.ICON_PATH,
                 timeout=timeout,
             )
-        except Exception:
-            # 通知失败时静默处理
-            pass
 
     def notify_flow_enter(self, flow_level: int = 1) -> None:
         """通知进入心流状态.

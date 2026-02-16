@@ -1,15 +1,16 @@
 """Happy Vibe 桌面监控器主程序."""
 
 import asyncio
+import contextlib
 import signal
-import sys
-from typing import NoReturn
+from typing import Any
 
 from src.api import VibeHubClient
 from src.config import Settings
-from src.notify import Notifier
+from src.notify import NotificationType, Notifier
 from src.tray import TrayIcon
 from src.tray.tray_icon import TrayStatus
+from src.watcher import ClaudeLogWatcher, LogEvent, LogEventType
 
 
 class Monitor:
@@ -25,11 +26,17 @@ class Monitor:
         self.client = VibeHubClient(self.settings.vibehub_url)
         self.notifier = Notifier(enabled=self.settings.notifications_enabled)
         self.tray = TrayIcon()
+        self.log_watcher = ClaudeLogWatcher()
 
         self._running = False
         self._tracking = False
         self._last_flow_state = False
-        self._track_task: asyncio.Task | None = None
+        self._track_task: asyncio.Task[None] | None = None
+        self._pending_updates: dict[str, Any] = {
+            "lines_added": 0,
+            "lines_deleted": 0,
+            "files_changed": 0,
+        }
 
     def _setup_tray(self) -> None:
         """设置托盘回调."""
@@ -51,17 +58,26 @@ class Monitor:
 
     def _on_open_game(self) -> None:
         """打开游戏回调."""
-        # TODO: 启动 Godot 游戏客户端
-        self.notifier.notify("游戏客户端尚未实现", notification_type=self.notifier.notify.__self__.__class__.NotificationType.WARNING if hasattr(self.notifier, 'NotificationType') else None)
+        self.notifier.notify("游戏客户端尚未实现", NotificationType.WARNING)
 
     def _on_open_settings(self) -> None:
         """打开设置回调."""
-        # TODO: 打开设置界面
         pass
 
     def _on_quit(self) -> None:
         """退出回调."""
         self._running = False
+
+    def _on_log_event(self, event: LogEvent) -> None:
+        """处理日志事件回调."""
+        if event.event_type == LogEventType.SESSION_START:
+            if not self._tracking:
+                asyncio.create_task(self._start_tracking())
+        elif event.event_type == LogEventType.SESSION_END:
+            if self._tracking:
+                asyncio.create_task(self._stop_tracking())
+        elif event.event_type == LogEventType.FILE_EDIT or event.event_type == LogEventType.FILE_CREATE:
+            self._pending_updates["files_changed"] += 1
 
     async def _start_tracking(self) -> None:
         """开始活动追踪."""
@@ -158,6 +174,10 @@ class Monitor:
         self._running = True
         self._setup_tray()
 
+        # 启动日志监听
+        self.log_watcher.add_callback(self._on_log_event)
+        self.log_watcher.start()
+
         # 启动托盘（在后台线程）
         self.tray.run_detached()
 
@@ -182,15 +202,14 @@ class Monitor:
             monitor_task.cancel()
             if self._track_task:
                 self._track_task.cancel()
+            self.log_watcher.stop()
             await self.client.close()
             self.tray.stop()
 
     def run(self) -> None:
         """运行监控器."""
-        try:
+        with contextlib.suppress(KeyboardInterrupt):
             asyncio.run(self.run_async())
-        except KeyboardInterrupt:
-            pass
 
 
 def main() -> None:
