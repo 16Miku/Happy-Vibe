@@ -1,0 +1,91 @@
+[gd_scene load_steps=2 format=3 uid="uid://achievement_panel"]
+
+[ext_resource type="Script" path="res://scripts/ui/achievement_panel.gd" id="1_achievement_panel"]
+
+[node name="AchievementPanel" type="PanelContainer"]
+offset_right = 700.0
+offset_bottom = 500.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_achievement_panel")
+
+[node name="Header" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🏆 成就系统"
+theme_override_font_sizes/font_size = 24
+
+[node name="StatsLabel" type="Label" parent="Header"]
+layout_mode = 2
+text = "已完成: 0 / 0"
+
+[node name="CloseButton" type="Button" parent="Header"]
+layout_mode = 2
+text = "×"
+theme_override_font_sizes/font_size = 32
+
+[node name="Content" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CategoryTabs" type="TabContainer" parent="Content"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="All" type="ScrollContainer" parent="Content/CategoryTabs"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBox" type="VBoxContainer" parent="Content/CategoryTabs/All"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Coding" type="ScrollContainer" parent="Content/CategoryTabs"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBox" type="VBoxContainer" parent="Content/CategoryTabs/Coding"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Farm" type="ScrollContainer" parent="Content/CategoryTabs"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBox" type="VBoxContainer" parent="Content/CategoryTabs/Farm"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Social" type="ScrollContainer" parent="Content/CategoryTabs"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBox" type="VBoxContainer" parent="Content/CategoryTabs/Social"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Collection" type="ScrollContainer" parent="Content/CategoryTabs"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBox" type="VBoxContainer" parent="Content/CategoryTabs/Collection"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="PVP" type="ScrollContainer" parent="Content/CategoryTabs"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBox" type="VBoxContainer" parent="Content/CategoryTabs/PVP"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3

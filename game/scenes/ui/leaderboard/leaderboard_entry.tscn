@@ -1,0 +1,51 @@
+[gd_scene load_steps=2 format=3 uid="uid://leaderboard_entry"]
+
+[ext_resource type="Script" path="res://scripts/ui/leaderboard_entry.gd" id="1_leaderboard_entry"]
+
+[node name="LeaderboardEntry" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="RankLabel" type="Label" parent="HBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(50, 0)
+text = "#1"
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
+vertical_alignment = 3
+
+[node name="RankIcon" type="Label" parent="HBox"]
+visible = false
+layout_mode = 2
+custom_minimum_size = Vector2(50, 0)
+text = "🥇"
+theme_override_font_sizes/font_size = 32
+horizontal_alignment = 1
+vertical_alignment = 3
+
+[node name="AvatarLabel" type="Label" parent="HBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(40, 0)
+text = "👤"
+theme_override_font_sizes/font_size = 32
+horizontal_alignment = 1
+vertical_alignment = 3
+
+[node name="VBox" type="VBoxContainer" parent="HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 5
+
+[node name="NameLabel" type="Label" parent="HBox/VBox"]
+layout_mode = 2
+text = "玩家名称"
+theme_override_font_sizes/font_size = 16
+
+[node name="ValueLabel" type="Label" parent="HBox/VBox"]
+layout_mode = 2
+text = "100"
+theme_override_colors/font_color = Color(0.8, 0.8, 0.6, 1)

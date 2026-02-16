@@ -1,0 +1,167 @@
+[gd_scene load_steps=2 format=3 uid="uid://guild_panel"]
+
+[ext_resource type="Script" path="res://scripts/ui/guild_panel.gd" id="1_guild_panel"]
+
+[node name="GuildPanel" type="PanelContainer"]
+offset_right = 800.0
+offset_bottom = 600.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_guild_panel")
+
+[node name="Header" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🏰 公会系统"
+theme_override_font_sizes/font_size = 24
+
+[node name="CloseButton" type="Button" parent="Header"]
+layout_mode = 2
+text = "×"
+theme_override_font_sizes/font_size = 32
+
+[node name="Content" type="Control" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MyGuildPanel" type="VBoxContainer" parent="Content"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 15
+
+[node name="GuildInfo" type="VBoxContainer" parent="Content/MyGuildPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="GuildNameLabel" type="Label" parent="Content/MyGuildPanel/GuildInfo"]
+layout_mode = 2
+text = "公会名称"
+theme_override_font_sizes/font_size = 20
+
+[node name="GuildLevelLabel" type="Label" parent="Content/MyGuildPanel/GuildInfo"]
+layout_mode = 2
+text = "Lv.1"
+
+[node name="GuildDescLabel" type="Label" parent="Content/MyGuildPanel/GuildInfo"]
+layout_mode = 2
+text = "公会描述"
+
+[node name="GuildMembersLabel" type="Label" parent="Content/MyGuildPanel/GuildInfo"]
+layout_mode = 2
+text = "成员: 0 / 50"
+
+[node name="GuildRankLabel" type="Label" parent="Content/MyGuildPanel/GuildInfo"]
+layout_mode = 2
+text = "排名: 未上榜"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Content/MyGuildPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 15
+
+[node name="MemberList" type="VBoxContainer" parent="Content/MyGuildPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 5
+
+[node name="Title" type="Label" parent="Content/MyGuildPanel/HBoxContainer/MemberList"]
+layout_mode = 2
+text = "公会成员"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Content/MyGuildPanel/HBoxContainer/MemberList"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="MemberList" type="VBoxContainer" parent="Content/MyGuildPanel/HBoxContainer/MemberList/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 5
+
+[node name="LeaveButton" type="Button" parent="Content/MyGuildPanel"]
+layout_mode = 2
+text = "离开公会"
+
+[node name="GuildListPanel" type="VBoxContainer" parent="Content"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 15
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Content/GuildListPanel"]
+layout_mode = 2
+
+[node name="RefreshButton" type="Button" parent="Content/GuildListPanel/HBoxContainer"]
+layout_mode = 2
+text = "刷新"
+
+[node name="CreateButton" type="Button" parent="Content/GuildListPanel/HBoxContainer"]
+layout_mode = 2
+text = "创建公会"
+
+[node name="JoinButton" type="Button" parent="Content/GuildListPanel/HBoxContainer"]
+layout_mode = 2
+text = "申请加入"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Content/GuildListPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="GuildList" type="VBoxContainer" parent="Content/GuildListPanel/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 5
+
+[node name="CreateGuildPanel" type="VBoxContainer" parent="Content"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 15
+
+[node name="Title" type="Label" parent="Content/CreateGuildPanel"]
+layout_mode = 2
+text = "创建公会"
+theme_override_font_sizes/font_size = 20
+
+[node name="Form" type="VBoxContainer" parent="Content/CreateGuildPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="GuildNameInput" type="LineEdit" parent="Content/CreateGuildPanel/Form"]
+layout_mode = 2
+placeholder_text = "公会名称 (2-20字符)"
+
+[node name="GuildDescInput" type="TextEdit" parent="Content/CreateGuildPanel/Form"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 100)
+placeholder_text = "公会简介 (可选)"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Content/CreateGuildPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ConfirmButton" type="Button" parent="Content/CreateGuildPanel/HBoxContainer"]
+layout_mode = 2
+text = "创建"
+
+[node name="CancelButton" type="Button" parent="Content/CreateGuildPanel/HBoxContainer"]
+layout_mode = 2
+text = "取消"

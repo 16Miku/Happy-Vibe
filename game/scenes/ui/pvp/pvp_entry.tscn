@@ -1,0 +1,54 @@
+[gd_scene load_steps=2 format=3 uid="uid://pvp_entry"]
+
+[ext_resource type="Script" path="res://scripts/ui/pvp_entry.gd" id="1_pvp_entry"]
+
+[node name="PVPEntry" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="RankLabel" type="Label" parent="HBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(50, 0)
+text = "#1"
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
+vertical_alignment = 3
+
+[node name="TierIcon" type="Label" parent="HBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(40, 0)
+text = "🥉"
+theme_override_font_sizes/font_size = 32
+horizontal_alignment = 1
+vertical_alignment = 3
+
+[node name="VBox" type="VBoxContainer" parent="HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 5
+
+[node name="NameLabel" type="Label" parent="HBox/VBox"]
+layout_mode = 2
+text = "玩家名称"
+theme_override_font_sizes/font_size = 16
+
+[node name="RatingLabel" type="Label" parent="HBox/VBox"]
+layout_mode = 2
+text = "积分: 1200"
+
+[node name="StatsLabel" type="Label" parent="HBox/VBox"]
+layout_mode = 2
+text = "10胜 5负"
+
+[node name="ResultLabel" type="Label" parent="HBox"]
+visible = false
+layout_mode = 2
+custom_minimum_size = Vector2(60, 0)
+text = "胜利"
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+vertical_alignment = 3

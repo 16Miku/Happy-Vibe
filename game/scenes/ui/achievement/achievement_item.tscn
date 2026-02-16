@@ -1,0 +1,57 @@
+[gd_scene load_steps=2 format=3 uid="uid://achievement_item"]
+
+[ext_resource type="Script" path="res://scripts/ui/achievement_item.gd" id="1_achievement_item"]
+
+[node name="AchievementItem" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="TierIcon" type="Label" parent="HBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(40, 0)
+text = "🥉"
+theme_override_font_sizes/font_size = 32
+horizontal_alignment = 1
+vertical_alignment = 3
+
+[node name="IconLabel" type="Label" parent="HBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(60, 0)
+text = "🏆"
+theme_override_font_sizes/font_size = 48
+horizontal_alignment = 1
+vertical_alignment = 3
+
+[node name="VBox" type="VBoxContainer" parent="HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 5
+
+[node name="NameLabel" type="Label" parent="HBox/VBox"]
+layout_mode = 2
+text = "成就名称"
+theme_override_font_sizes/font_size = 16
+
+[node name="DescriptionLabel" type="Label" parent="HBox/VBox"]
+layout_mode = 2
+text = "成就描述"
+autowrap_mode = 3
+
+[node name="ProgressBar" type="ProgressBar" parent="HBox/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 15)
+value = 50.0
+show_percentage = false
+
+[node name="RewardLabel" type="Label" parent="HBox/VBox"]
+layout_mode = 2
+text = "🪙 100 ⭐ 50"
+
+[node name="ClaimButton" type="Button" parent="HBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(80, 0)
+text = "领取"

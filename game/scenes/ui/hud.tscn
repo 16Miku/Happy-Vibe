@@ -67,6 +67,22 @@ text = "⭐"
 layout_mode = 2
 text = "Lv.1"
 
+[node name="VIPPanel" type="PanelContainer" parent="TopBar"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="TopBar/VIPPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="VIPIcon" type="Label" parent="TopBar/VIPPanel/HBox"]
+layout_mode = 2
+text = "👑"
+
+[node name="VIPLabel" type="Label" parent="TopBar/VIPPanel/HBox"]
+layout_mode = 2
+text = "VIP 0"
+
 [node name="FlowIndicator" type="PanelContainer" parent="."]
 visible = false
 layout_mode = 1
@@ -97,31 +113,46 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -200.0
+offset_left = -320.0
 offset_top = -70.0
-offset_right = 200.0
+offset_right = 320.0
 offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_constants/separation = 15
+theme_override_constants/separation = 10
 alignment = 1
 
 [node name="QuestButton" type="Button" parent="BottomBar"]
-custom_minimum_size = Vector2(80, 50)
 layout_mode = 2
+custom_minimum_size = Vector2(70, 50)
 text = "任务"
 
-[node name="DecorationButton" type="Button" parent="BottomBar"]
-custom_minimum_size = Vector2(80, 50)
+[node name="AchievementButton" type="Button" parent="BottomBar"]
 layout_mode = 2
+custom_minimum_size = Vector2(70, 50)
+text = "成就"
+
+[node name="GuildButton" type="Button" parent="BottomBar"]
+layout_mode = 2
+custom_minimum_size = Vector2(70, 50)
+text = "公会"
+
+[node name="PVPButton" type="Button" parent="BottomBar"]
+layout_mode = 2
+custom_minimum_size = Vector2(70, 50)
+text = "竞技"
+
+[node name="DecorationButton" type="Button" parent="BottomBar"]
+layout_mode = 2
+custom_minimum_size = Vector2(70, 50)
 text = "装饰"
 
 [node name="SeasonButton" type="Button" parent="BottomBar"]
-custom_minimum_size = Vector2(80, 50)
 layout_mode = 2
+custom_minimum_size = Vector2(70, 50)
 text = "赛季"
 
 [node name="SettingsButton" type="Button" parent="BottomBar"]
-custom_minimum_size = Vector2(80, 50)
 layout_mode = 2
+custom_minimum_size = Vector2(70, 50)
 text = "设置"

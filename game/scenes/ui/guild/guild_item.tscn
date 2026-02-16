@@ -1,0 +1,37 @@
+[gd_scene load_steps=2 format=3 uid="uid://guild_item"]
+
+[ext_resource type="Script" path="res://scripts/ui/guild_item.gd" id="1_guild_item"]
+
+[node name="GuildItem" type="PanelContainer"]
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="VBox" type="VBoxContainer" parent="HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 5
+
+[node name="NameLabel" type="Label" parent="HBox/VBox"]
+layout_mode = 2
+text = "公会名称"
+theme_override_font_sizes/font_size = 16
+
+[node name="LevelLabel" type="Label" parent="HBox/VBox"]
+layout_mode = 2
+text = "Lv.1"
+
+[node name="MembersLabel" type="Label" parent="HBox/VBox"]
+layout_mode = 2
+text = "成员: 10/50"
+
+[node name="RankLabel" type="Label" parent="HBox/RankLabel"]
+layout_mode = 2
+text = "#1"
+theme_override_font_sizes/font_size = 20
+
+[node name="SelectButton" type="Button" parent="HBox"]
+layout_mode = 2
+text = "加入"

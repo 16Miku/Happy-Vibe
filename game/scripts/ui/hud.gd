@@ -5,9 +5,13 @@ extends Control
 @onready var energy_label: Label = $TopBar/EnergyPanel/HBox/EnergyLabel
 @onready var gold_label: Label = $TopBar/GoldPanel/HBox/GoldLabel
 @onready var level_label: Label = $TopBar/LevelPanel/HBox/LevelLabel
+@onready var vip_label: Label = $TopBar/VIPPanel/HBox/VIPLabel
 @onready var flow_indicator: PanelContainer = $FlowIndicator
 @onready var flow_label: Label = $FlowIndicator/HBox/FlowLabel
 @onready var quest_button: Button = $BottomBar/QuestButton
+@onready var achievement_button: Button = $BottomBar/AchievementButton
+@onready var guild_button: Button = $BottomBar/GuildButton
+@onready var pvp_button: Button = $BottomBar/PVPButton
 @onready var decoration_button: Button = $BottomBar/DecorationButton
 @onready var season_button: Button = $BottomBar/SeasonButton
 @onready var settings_button: Button = $BottomBar/SettingsButton
@@ -18,6 +22,9 @@ var avatar_selector: Control = null
 
 ## 面板实例
 var quest_panel: Control = null
+var achievement_panel: Control = null
+var guild_panel: Control = null
+var pvp_panel: Control = null
 var decoration_panel: Control = null
 var season_panel: Control = null
 var settings_panel: Control = null
@@ -149,6 +156,9 @@ func _update_level_display() -> void:
 	"""更新等级显示"""
 	if level_label:
 		level_label.text = "Lv.%d" % GameManager.get_level()
+	if vip_label:
+		var vip_level := DataManager.player_data.vip_level if DataManager.player_data else 0
+		vip_label.text = "VIP %d" % vip_level
 
 
 func _update_flow_display() -> void:
@@ -330,6 +340,12 @@ func _setup_bottom_bar_buttons() -> void:
 	"""连接底部按钮信号"""
 	if quest_button:
 		quest_button.pressed.connect(_on_quest_button_pressed)
+	if achievement_button:
+		achievement_button.pressed.connect(_on_achievement_button_pressed)
+	if guild_button:
+		guild_button.pressed.connect(_on_guild_button_pressed)
+	if pvp_button:
+		pvp_button.pressed.connect(_on_pvp_button_pressed)
 	if decoration_button:
 		decoration_button.pressed.connect(_on_decoration_button_pressed)
 	if season_button:
@@ -419,9 +435,74 @@ func _hide_all_panels() -> void:
 	"""隐藏所有打开的面板"""
 	if quest_panel and is_instance_valid(quest_panel):
 		quest_panel.hide()
+	if achievement_panel and is_instance_valid(achievement_panel):
+		achievement_panel.hide()
+	if guild_panel and is_instance_valid(guild_panel):
+		guild_panel.hide()
+	if pvp_panel and is_instance_valid(pvp_panel):
+		pvp_panel.hide()
 	if decoration_panel and is_instance_valid(decoration_panel):
 		decoration_panel.hide()
 	if season_panel and is_instance_valid(season_panel):
 		season_panel.hide()
 	if settings_panel and is_instance_valid(settings_panel):
 		settings_panel.hide()
+
+
+## ==================== 新增面板按钮 ====================
+
+## 成就按钮点击
+func _on_achievement_button_pressed() -> void:
+	"""打开成就面板"""
+	if achievement_panel == null or not is_instance_valid(achievement_panel):
+		var panel_scene := load("res://scenes/ui/achievement/achievement_panel.tscn")
+		if panel_scene:
+			achievement_panel = panel_scene.instantiate()
+			add_child(achievement_panel)
+		else:
+			push_warning("[HUD] 无法加载成就面板场景")
+			return
+
+	if achievement_panel.visible:
+		achievement_panel.hide()
+	else:
+		_hide_all_panels()
+		achievement_panel.show()
+
+
+## 公会按钮点击
+func _on_guild_button_pressed() -> void:
+	"""打开公会面板"""
+	if guild_panel == null or not is_instance_valid(guild_panel):
+		var panel_scene := load("res://scenes/ui/guild/guild_panel.tscn")
+		if panel_scene:
+			guild_panel = panel_scene.instantiate()
+			add_child(guild_panel)
+		else:
+			push_warning("[HUD] 无法加载公会面板场景")
+			return
+
+	if guild_panel.visible:
+		guild_panel.hide()
+	else:
+		_hide_all_panels()
+		guild_panel.show()
+
+
+## PVP 按钮点击
+func _on_pvp_button_pressed() -> void:
+	"""打开 PVP 竞技场面板"""
+	if pvp_panel == null or not is_instance_valid(pvp_panel):
+		var panel_scene := load("res://scenes/ui/pvp/pvp_panel.tscn")
+		if panel_scene:
+			pvp_panel = panel_scene.instantiate()
+			add_child(pvp_panel)
+		else:
+			push_warning("[HUD] 无法加载 PVP 面板场景")
+			return
+
+	if pvp_panel.visible:
+		pvp_panel.hide()
+	else:
+		_hide_all_panels()
+		pvp_panel.show()

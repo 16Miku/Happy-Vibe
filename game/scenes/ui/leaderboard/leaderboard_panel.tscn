@@ -1,0 +1,73 @@
+[gd_scene load_steps=2 format=3 uid="uid://leaderboard_panel"]
+
+[ext_resource type="Script" path="res://scripts/ui/leaderboard_panel.gd" id="1_leaderboard_panel"]
+
+[node name="LeaderboardPanel" type="PanelContainer"]
+offset_right = 600.0
+offset_bottom = 700.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_leaderboard_panel")
+
+[node name="Header" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🏆 排行榜"
+theme_override_font_sizes/font_size = 24
+
+[node name="MyRankLabel" type="Label" parent="Header"]
+layout_mode = 2
+text = "我的排名: 未上榜"
+
+[node name="CloseButton" type="Button" parent="Header"]
+layout_mode = 2
+text = "×"
+theme_override_font_sizes/font_size = 32
+
+[node name="Content" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 15
+
+[node name="TypeButtons" type="HBoxContainer" parent="Content"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="LevelButton" type="Button" parent="Content/TypeButtons"]
+layout_mode = 2
+text = "等级"
+toggle_mode = true
+
+[node name="EnergyButton" type="Button" parent="Content/TypeButtons"]
+layout_mode = 2
+text = "能量"
+toggle_mode = true
+
+[node name="GoldButton" type="Button" parent="Content/TypeButtons"]
+layout_mode = 2
+text = "财富"
+toggle_mode = true
+
+[node name="AchievementButton" type="Button" parent="Content/TypeButtons"]
+layout_mode = 2
+text = "成就"
+toggle_mode = true
+
+[node name="FarmButton" type="Button" parent="Content/TypeButtons"]
+layout_mode = 2
+text = "农场"
+toggle_mode = true
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Content"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="EntryList" type="VBoxContainer" parent="Content/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 5

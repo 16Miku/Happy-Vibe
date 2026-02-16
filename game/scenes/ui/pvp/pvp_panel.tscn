@@ -1,0 +1,142 @@
+[gd_scene load_steps=2 format=3 uid="uid://pvp_panel"]
+
+[ext_resource type="Script" path="res://scripts/ui/pvp_panel.gd" id="1_pvp_panel"]
+
+[node name="PVPPanel" type="PanelContainer"]
+offset_right = 700.0
+offset_bottom = 600.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_pvp_panel")
+
+[node name="Header" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "⚔️ PVP 竞技场"
+theme_override_font_sizes/font_size = 24
+
+[node name="CloseButton" type="Button" parent="Header"]
+layout_mode = 2
+text = "×"
+theme_override_font_sizes/font_size = 32
+
+[node name="Content" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="TabContainer" type="HBoxContainer" parent="Content"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="InfoTab" type="Button" parent="Content/TabContainer"]
+layout_mode = 2
+text = "我的信息"
+toggle_mode = true
+button_pressed = true
+
+[node name="LeaderboardTab" type="Button" parent="Content/TabContainer"]
+layout_mode = 2
+text = "排行榜"
+toggle_mode = true
+
+[node name="HistoryTab" type="Button" parent="Content/TabContainer"]
+layout_mode = 2
+text = "历史记录"
+toggle_mode = true
+
+[node name="InfoPanel" type="VBoxContainer" parent="Content"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 15
+
+[node name="StatsContainer" type="GridContainer" parent="Content/InfoPanel"]
+layout_mode = 2
+columns = 2
+
+[node name="RatingLabel" type="Label" parent="Content/InfoPanel/StatsContainer"]
+layout_mode = 2
+text = "积分: 1200"
+theme_override_font_sizes/font_size = 20
+
+[node name="TierLabel" type="Label" parent="Content/InfoPanel/StatsContainer"]
+layout_mode = 2
+text = "🥉 青铜"
+theme_override_font_sizes/font_size = 20
+
+[node name="WinsLabel" type="Label" parent="Content/InfoPanel/StatsContainer"]
+layout_mode = 2
+text = "胜场: 0"
+
+[node name="LossesLabel" type="Label" parent="Content/InfoPanel/StatsContainer"]
+layout_mode = 2
+text = "败场: 0"
+
+[node name="StreakLabel" type="Label" parent="Content/InfoPanel/StatsContainer"]
+layout_mode = 2
+text = "连胜: 0"
+
+[node name="MaxRatingLabel" type="Label" parent="Content/InfoPanel/StatsContainer"]
+layout_mode = 2
+text = "最高积分: 1200"
+
+[node name="MatchButton" type="Button" parent="Content/InfoPanel"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 50)
+text = "🎮 开始匹配"
+theme_override_font_sizes/font_size = 18
+
+[node name="LeaderboardPanel" type="VBoxContainer" parent="Content"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Content/LeaderboardPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="LeaderboardList" type="VBoxContainer" parent="Content/LeaderboardPanel/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="MatchmakingPanel" type="VBoxContainer" parent="Content"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="MatchmakingLabel" type="Label" parent="Content/MatchmakingPanel"]
+layout_mode = 2
+text = "正在匹配对手..."
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+
+[node name="CancelButton" type="Button" parent="Content/MatchmakingPanel"]
+layout_mode = 2
+text = "取消匹配"
+
+[node name="HistoryPanel" type="VBoxContainer" parent="Content"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Content/HistoryPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HistoryList" type="VBoxContainer" parent="Content/HistoryPanel/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
