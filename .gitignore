@@ -12,6 +12,14 @@ venv/
 dist/
 build/
 
+# ==================== 数据库文件 ====================
+# 开发数据库（生产环境使用环境变量配置）
+vibehub/data/*.db
+vibehub/data/*.db-journal
+# 但保留数据库 schema 和迁移文件（如果有）
+!vibehub/data/schema.sql
+!vibehub/data/migrations/
+
 # ==================== 测试和覆盖率 ====================
 .pytest_cache/
 .coverage
