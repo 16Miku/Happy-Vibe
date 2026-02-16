@@ -183,7 +183,16 @@ def get_current_player(session: Session) -> Player:
 # ============== API 端点 ==============
 
 
-@router.get("", response_model=PlayerResponse)
+@router.get(
+    "",
+    response_model=PlayerResponse,
+    summary="获取当前玩家信息",
+    description="获取当前登录玩家的完整信息，包括等级、经验、资源等。",
+    responses={
+        200: {"description": "成功返回玩家信息"},
+        404: {"description": "玩家不存在，请先创建玩家"},
+    },
+)
 async def get_player(session: Session = Depends(get_db_session)) -> Player:
     """获取当前玩家信息
 
@@ -193,7 +202,17 @@ async def get_player(session: Session = Depends(get_db_session)) -> Player:
     return get_current_player(session)
 
 
-@router.post("", response_model=PlayerResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=PlayerResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="创建新玩家",
+    description="创建一个新的玩家账户。本地模式只支持单玩家。",
+    responses={
+        201: {"description": "玩家创建成功"},
+        409: {"description": "玩家已存在或用户名重复"},
+    },
+)
 async def create_player(
     data: PlayerCreate,
     session: Session = Depends(get_db_session)
@@ -236,7 +255,17 @@ async def create_player(
     return player
 
 
-@router.put("", response_model=PlayerResponse)
+@router.put(
+    "",
+    response_model=PlayerResponse,
+    summary="更新玩家信息",
+    description="更新当前玩家的基本信息，如用户名、属性值等。",
+    responses={
+        200: {"description": "更新成功"},
+        404: {"description": "玩家不存在"},
+        409: {"description": "用户名已被使用"},
+    },
+)
 async def update_player(
     data: PlayerUpdate,
     session: Session = Depends(get_db_session)
@@ -280,7 +309,16 @@ async def update_player(
     return player
 
 
-@router.get("/stats", response_model=PlayerStats)
+@router.get(
+    "/stats",
+    response_model=PlayerStats,
+    summary="获取玩家统计数据",
+    description="获取玩家的详细统计数据，包括编码活动、成就、库存等。",
+    responses={
+        200: {"description": "成功返回统计数据"},
+        404: {"description": "玩家不存在"},
+    },
+)
 async def get_player_stats(session: Session = Depends(get_db_session)) -> PlayerStats:
     """获取玩家统计数据
 
@@ -324,7 +362,16 @@ async def get_player_stats(session: Session = Depends(get_db_session)) -> Player
     )
 
 
-@router.post("/energy", response_model=AddEnergyResponse)
+@router.post(
+    "/energy",
+    response_model=AddEnergyResponse,
+    summary="添加能量",
+    description="为当前玩家添加 Vibe 能量，能量不会超过上限。",
+    responses={
+        200: {"description": "能量添加成功"},
+        404: {"description": "玩家不存在"},
+    },
+)
 async def add_energy(
     data: AddEnergyRequest,
     session: Session = Depends(get_db_session)
@@ -360,7 +407,16 @@ async def add_energy(
     )
 
 
-@router.post("/exp", response_model=AddExpResponse)
+@router.post(
+    "/exp",
+    response_model=AddExpResponse,
+    summary="添加经验值",
+    description="为当前玩家添加经验值，可能触发升级。",
+    responses={
+        200: {"description": "经验添加成功，返回升级信息"},
+        404: {"description": "玩家不存在"},
+    },
+)
 async def add_exp(
     data: AddExpRequest,
     session: Session = Depends(get_db_session)

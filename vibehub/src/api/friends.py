@@ -92,7 +92,14 @@ def _get_affinity_title(score: int) -> str:
 # ==================== API 端点 ====================
 
 
-@router.get("/list/{player_id}")
+@router.get(
+    "/list/{player_id}",
+    summary="获取好友列表",
+    description="获取指定玩家的好友列表，可选择是否包含离线好友。",
+    responses={
+        200: {"description": "成功返回好友列表"},
+    },
+)
 async def get_friends_list(
     player_id: str,
     include_offline: bool = Query(True, description="是否包含离线好友"),
@@ -143,7 +150,15 @@ async def get_friends_list(
     }
 
 
-@router.post("/request")
+@router.post(
+    "/request",
+    summary="发送好友请求",
+    description="向指定玩家发送好友请求，可附带消息。",
+    responses={
+        200: {"description": "请求发送成功"},
+        400: {"description": "已是好友或请求已存在"},
+    },
+)
 async def send_friend_request(request: FriendRequestCreate) -> dict:
     """发送好友请求
 
@@ -203,7 +218,14 @@ async def send_friend_request(request: FriendRequestCreate) -> dict:
     }
 
 
-@router.get("/requests/{player_id}")
+@router.get(
+    "/requests/{player_id}",
+    summary="获取好友请求列表",
+    description="获取玩家收到和发出的好友请求列表。",
+    responses={
+        200: {"description": "成功返回请求列表"},
+    },
+)
 async def get_friend_requests(
     player_id: str,
     status: Optional[str] = Query(None, description="筛选状态"),
@@ -252,7 +274,16 @@ async def get_friend_requests(
     }
 
 
-@router.post("/request/respond")
+@router.post(
+    "/request/respond",
+    summary="响应好友请求",
+    description="接受或拒绝收到的好友请求。",
+    responses={
+        200: {"description": "响应成功"},
+        400: {"description": "请求已处理"},
+        404: {"description": "请求不存在"},
+    },
+)
 async def respond_to_friend_request(response: FriendRequestResponse) -> dict:
     """响应好友请求
 
@@ -316,7 +347,15 @@ async def respond_to_friend_request(response: FriendRequestResponse) -> dict:
         }
 
 
-@router.delete("/{player_id}/{friend_id}")
+@router.delete(
+    "/{player_id}/{friend_id}",
+    summary="删除好友",
+    description="删除指定的好友关系，双向解除。",
+    responses={
+        200: {"description": "删除成功"},
+        404: {"description": "好友不存在"},
+    },
+)
 async def remove_friend(player_id: str, friend_id: str) -> dict:
     """删除好友
 
@@ -341,7 +380,15 @@ async def remove_friend(player_id: str, friend_id: str) -> dict:
     }
 
 
-@router.post("/gift")
+@router.post(
+    "/gift",
+    summary="发送礼物给好友",
+    description="向好友发送礼物，增加双方好友度。",
+    responses={
+        200: {"description": "礼物发送成功"},
+        400: {"description": "不是好友"},
+    },
+)
 async def send_gift(request: SendGiftRequest) -> dict:
     """发送礼物给好友
 
@@ -386,7 +433,15 @@ async def send_gift(request: SendGiftRequest) -> dict:
     }
 
 
-@router.post("/help")
+@router.post(
+    "/help",
+    summary="帮助好友",
+    description="帮助好友进行农场操作（浇水/收获/施肥），需要好友度达到 51 以上。",
+    responses={
+        200: {"description": "帮助成功"},
+        400: {"description": "不是好友或好友度不足"},
+    },
+)
 async def help_friend(request: HelpActionRequest) -> dict:
     """帮助好友 (浇水/收获/施肥)
 
@@ -437,7 +492,14 @@ async def help_friend(request: HelpActionRequest) -> dict:
     }
 
 
-@router.get("/online/{player_id}")
+@router.get(
+    "/online/{player_id}",
+    summary="获取在线好友列表",
+    description="获取指定玩家当前在线的好友列表。",
+    responses={
+        200: {"description": "成功返回在线好友列表"},
+    },
+)
 async def get_online_friends(player_id: str) -> dict:
     """获取在线好友列表
 
@@ -465,7 +527,15 @@ async def get_online_friends(player_id: str) -> dict:
     }
 
 
-@router.post("/visit/{player_id}/{friend_id}")
+@router.post(
+    "/visit/{player_id}/{friend_id}",
+    summary="访问好友农场",
+    description="访问好友的农场，增加双方好友度。",
+    responses={
+        200: {"description": "访问成功"},
+        400: {"description": "不是好友"},
+    },
+)
 async def visit_friend_farm(player_id: str, friend_id: str) -> dict:
     """访问好友农场
 

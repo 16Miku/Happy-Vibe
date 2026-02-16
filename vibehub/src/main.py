@@ -1,9 +1,23 @@
-"""Happy Vibe Hub 主应用入口"""
+"""Happy Vibe Hub 主应用入口
+
+VibeHub 是 Happy Vibe 游戏的本地服务端，提供：
+- 玩家数据管理
+- 能量计算与发放
+- 农场系统
+- 成就系统
+- 公会系统
+- PVP 竞技场
+- 交易市场
+- 好友系统
+- 实时通信 (WebSocket)
+"""
 
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
+from fastapi.openapi.utils import get_openapi
 
 from src.api import (
     achievement_router,
@@ -29,6 +43,7 @@ from src.api import (
     shop_router,
     websocket_router,
 )
+from src.api.schemas import API_TAGS_METADATA
 from src.config.settings import settings
 from src.storage.database import Database
 
@@ -56,10 +71,49 @@ async def lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     """创建 FastAPI 应用实例"""
     app = FastAPI(
-        title="Happy Vibe Hub",
-        description="Vibe-Coding 游戏化平台本地服务 - 支持多人联机",
+        title="Happy Vibe Hub API",
+        description="""
+## 🎮 Happy Vibe Hub - Vibe-Coding 游戏化平台
+
+将编码活动转化为游戏体验的本地服务端。
+
+### 主要功能
+
+- **🧑‍💻 玩家系统** - 玩家信息、等级、经验管理
+- **⚡ 能量系统** - Vibe 能量计算与发放
+- **🌾 农场系统** - 种植、浇水、收获作物
+- **🏆 成就系统** - 成就追踪与奖励
+- **👥 公会系统** - 公会创建、管理、公会战
+- **⚔️ PVP 竞技** - 匹配对战、排名系统
+- **🛒 商店系统** - NPC 商店购物
+- **📈 交易市场** - 玩家间物品交易
+- **👫 好友系统** - 好友互动、礼物互赠
+- **📅 签到系统** - 每日签到奖励
+- **🎯 任务系统** - 日常/周常任务
+- **🏅 排行榜** - 多维度排名
+
+### 认证说明
+
+当前版本为本地单机模式，无需认证。
+
+### WebSocket 连接
+
+实时通信端点: `ws://localhost:8000/ws/connect`
+""",
         version=settings.VERSION,
-        lifespan=lifespan
+        lifespan=lifespan,
+        openapi_tags=API_TAGS_METADATA,
+        docs_url="/docs",
+        redoc_url="/redoc",
+        openapi_url="/openapi.json",
+        license_info={
+            "name": "MIT License",
+            "url": "https://opensource.org/licenses/MIT",
+        },
+        contact={
+            "name": "Happy Vibe Team",
+            "url": "https://github.com/happy-vibe",
+        },
     )
 
     # 配置 CORS

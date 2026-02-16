@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 from src.core.market import market_manager
 
-router = APIRouter(prefix="/api/market", tags=["市场"])
+router = APIRouter(prefix="/api/market", tags=["market"])
 
 
 class CreateListingRequest(BaseModel):
@@ -84,7 +84,15 @@ class MarketStatsResponse(BaseModel):
     unique_sellers: int
 
 
-@router.get("/listings", response_model=list[ListingResponse])
+@router.get(
+    "/listings",
+    response_model=list[ListingResponse],
+    summary="获取市场挂单列表",
+    description="获取市场上的挂单列表，支持按物品类型、名称、卖家等条件筛选。",
+    responses={
+        200: {"description": "成功返回挂单列表"},
+    },
+)
 async def get_listings(
     item_type: str | None = Query(None, description="物品类型过滤"),
     item_name: str | None = Query(None, description="物品名称过滤"),
@@ -121,7 +129,15 @@ async def get_listings(
     ]
 
 
-@router.post("/listings", response_model=CreateListingResponse)
+@router.post(
+    "/listings",
+    response_model=CreateListingResponse,
+    summary="创建挂单",
+    description="在市场上创建新的挂单，需要支付挂单费用。",
+    responses={
+        200: {"description": "挂单创建结果"},
+    },
+)
 async def create_listing(request: CreateListingRequest):
     """创建挂单"""
     result = market_manager.create_listing(
@@ -141,7 +157,16 @@ async def create_listing(request: CreateListingRequest):
     )
 
 
-@router.get("/listings/{listing_id}", response_model=ListingResponse)
+@router.get(
+    "/listings/{listing_id}",
+    response_model=ListingResponse,
+    summary="获取挂单详情",
+    description="获取指定挂单的详细信息。",
+    responses={
+        200: {"description": "成功返回挂单详情"},
+        404: {"description": "挂单不存在"},
+    },
+)
 async def get_listing(listing_id: str):
     """获取挂单详情"""
     listing = market_manager.get_listing(listing_id)
@@ -163,7 +188,15 @@ async def get_listing(listing_id: str):
     )
 
 
-@router.delete("/listings/{listing_id}")
+@router.delete(
+    "/listings/{listing_id}",
+    summary="取消挂单",
+    description="取消指定的挂单，只有卖家本人可以取消。",
+    responses={
+        200: {"description": "取消成功"},
+        400: {"description": "取消失败"},
+    },
+)
 async def cancel_listing(listing_id: str, request: CancelRequest):
     """取消挂单"""
     success, message = market_manager.cancel_listing(listing_id, request.player_id)
@@ -172,7 +205,15 @@ async def cancel_listing(listing_id: str, request: CancelRequest):
     return {"success": True, "message": message}
 
 
-@router.post("/listings/{listing_id}/buy", response_model=PurchaseResponse)
+@router.post(
+    "/listings/{listing_id}/buy",
+    response_model=PurchaseResponse,
+    summary="购买挂单",
+    description="购买市场上的挂单，可以购买部分或全部数量。",
+    responses={
+        200: {"description": "购买结果"},
+    },
+)
 async def purchase_listing(listing_id: str, request: PurchaseRequest):
     """购买挂单"""
     result = market_manager.purchase_listing(
@@ -191,14 +232,30 @@ async def purchase_listing(listing_id: str, request: PurchaseRequest):
     )
 
 
-@router.get("/stats", response_model=MarketStatsResponse)
+@router.get(
+    "/stats",
+    response_model=MarketStatsResponse,
+    summary="获取市场统计信息",
+    description="获取市场的整体统计数据，包括挂单数量、总价值等。",
+    responses={
+        200: {"description": "成功返回统计信息"},
+    },
+)
 async def get_market_stats():
     """获取市场统计信息"""
     stats = market_manager.get_market_stats()
     return MarketStatsResponse(**stats)
 
 
-@router.get("/player/{player_id}/listings", response_model=list[ListingResponse])
+@router.get(
+    "/player/{player_id}/listings",
+    response_model=list[ListingResponse],
+    summary="获取玩家的所有挂单",
+    description="获取指定玩家创建的所有挂单。",
+    responses={
+        200: {"description": "成功返回玩家挂单列表"},
+    },
+)
 async def get_player_listings(player_id: str):
     """获取玩家的所有挂单"""
     listings = market_manager.get_player_listings(player_id)

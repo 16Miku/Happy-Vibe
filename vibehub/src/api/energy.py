@@ -210,7 +210,15 @@ def _check_energy_cap(
 # ============== API 端点 ==============
 
 
-@router.post("/calculate", response_model=CalculateEnergyResponse)
+@router.post(
+    "/calculate",
+    response_model=CalculateEnergyResponse,
+    summary="计算能量值",
+    description="根据编码活动数据计算能量值，不进行实际发放。用于预览或客户端显示。",
+    responses={
+        200: {"description": "成功计算能量值"},
+    },
+)
 async def calculate_energy(request: CalculateEnergyRequest) -> CalculateEnergyResponse:
     """计算能量值
 
@@ -251,7 +259,16 @@ async def calculate_energy(request: CalculateEnergyRequest) -> CalculateEnergyRe
     )
 
 
-@router.post("/award", response_model=AwardEnergyResponse)
+@router.post(
+    "/award",
+    response_model=AwardEnergyResponse,
+    summary="发放能量到玩家账户",
+    description="计算能量并发放到指定玩家账户，同时记录活动历史。会检查每日能量上限。",
+    responses={
+        200: {"description": "能量发放成功"},
+        404: {"description": "玩家不存在"},
+    },
+)
 async def award_energy(
     request: AwardEnergyRequest,
     db_session: Session = Depends(get_db_session),
@@ -356,7 +373,16 @@ async def award_energy(
     )
 
 
-@router.get("/history", response_model=EnergyHistoryResponse)
+@router.get(
+    "/history",
+    response_model=EnergyHistoryResponse,
+    summary="获取能量获取历史",
+    description="查询指定玩家的能量获取历史记录，支持分页。",
+    responses={
+        200: {"description": "成功返回历史记录"},
+        404: {"description": "玩家不存在"},
+    },
+)
 async def get_energy_history(
     player_id: str,
     limit: int = 20,
@@ -414,7 +440,16 @@ async def get_energy_history(
     )
 
 
-@router.get("/status", response_model=EnergyStatusResponse)
+@router.get(
+    "/status",
+    response_model=EnergyStatusResponse,
+    summary="获取能量状态",
+    description="查询指定玩家的当前能量状态，包括每日上限信息。",
+    responses={
+        200: {"description": "成功返回能量状态"},
+        404: {"description": "玩家不存在"},
+    },
+)
 async def get_energy_status(
     player_id: str,
     db_session: Session = Depends(get_db_session),

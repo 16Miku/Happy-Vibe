@@ -75,7 +75,14 @@ class SnapshotResponse(BaseModel):
 # ==================== API 端点 ====================
 
 
-@router.get("/types")
+@router.get(
+    "/types",
+    summary="获取所有排行榜类型",
+    description="获取系统支持的所有排行榜类型及其评分规则。",
+    responses={
+        200: {"description": "成功返回排行榜类型列表"},
+    },
+)
 async def get_leaderboard_types() -> dict[str, Any]:
     """获取所有排行榜类型
 
@@ -109,7 +116,16 @@ async def get_leaderboard_types() -> dict[str, Any]:
     }
 
 
-@router.get("/{leaderboard_type}")
+@router.get(
+    "/{leaderboard_type}",
+    summary="获取排行榜数据",
+    description="获取指定类型的排行榜数据，支持分页和按赛季筛选。",
+    responses={
+        200: {"description": "成功返回排行榜数据"},
+        400: {"description": "无效的排行榜类型"},
+        404: {"description": "排行榜不存在"},
+    },
+)
 async def get_leaderboard(
     leaderboard_type: str,
     season_id: str | None = Query(None, description="赛季 ID，默认为当前赛季"),
@@ -149,7 +165,16 @@ async def get_leaderboard(
     return result
 
 
-@router.get("/{leaderboard_type}/rank/{player_id}")
+@router.get(
+    "/{leaderboard_type}/rank/{player_id}",
+    summary="获取玩家在排行榜中的排名",
+    description="获取指定玩家在排行榜中的排名和详细信息。",
+    responses={
+        200: {"description": "成功返回玩家排名信息"},
+        400: {"description": "无效的排行榜类型"},
+        404: {"description": "玩家不在排行榜中"},
+    },
+)
 async def get_player_rank(
     leaderboard_type: str,
     player_id: str,
@@ -187,7 +212,15 @@ async def get_player_rank(
     return result
 
 
-@router.get("/{leaderboard_type}/top")
+@router.get(
+    "/{leaderboard_type}/top",
+    summary="获取排行榜前 N 名",
+    description="获取排行榜前 N 名玩家列表。",
+    responses={
+        200: {"description": "成功返回前 N 名列表"},
+        400: {"description": "无效的排行榜类型"},
+    },
+)
 async def get_top_players(
     leaderboard_type: str,
     season_id: str | None = Query(None, description="赛季 ID"),
@@ -223,7 +256,15 @@ async def get_top_players(
     }
 
 
-@router.post("/{leaderboard_type}/update")
+@router.post(
+    "/{leaderboard_type}/update",
+    summary="更新排行榜数据",
+    description="手动触发排行榜数据更新（管理员接口）。",
+    responses={
+        200: {"description": "更新成功"},
+        400: {"description": "无效的排行榜类型"},
+    },
+)
 async def update_leaderboard(
     leaderboard_type: str,
     season_id: str = Query(..., description="赛季 ID"),
@@ -252,7 +293,15 @@ async def update_leaderboard(
     return result
 
 
-@router.get("/{leaderboard_type}/snapshots")
+@router.get(
+    "/{leaderboard_type}/snapshots",
+    summary="获取排行榜快照列表",
+    description="获取排行榜的历史快照列表。",
+    responses={
+        200: {"description": "成功返回快照列表"},
+        400: {"description": "无效的排行榜类型"},
+    },
+)
 async def get_snapshots(
     leaderboard_type: str,
     season_id: str = Query(..., description="赛季 ID"),
@@ -287,7 +336,15 @@ async def get_snapshots(
     }
 
 
-@router.post("/{leaderboard_type}/snapshot")
+@router.post(
+    "/{leaderboard_type}/snapshot",
+    summary="创建排行榜快照",
+    description="创建当前排行榜的快照（管理员接口）。",
+    responses={
+        200: {"description": "快照创建成功"},
+        400: {"description": "无效的排行榜类型"},
+    },
+)
 async def create_snapshot(
     leaderboard_type: str,
     season_id: str = Query(..., description="赛季 ID"),
@@ -316,7 +373,15 @@ async def create_snapshot(
     return result
 
 
-@router.get("/around/{player_id}")
+@router.get(
+    "/around/{player_id}",
+    summary="获取玩家周围的排行榜数据",
+    description="获取指定玩家排名前后的玩家列表，方便查看自己的排名位置。",
+    responses={
+        200: {"description": "成功返回周围排名数据"},
+        400: {"description": "无效的排行榜类型"},
+    },
+)
 async def get_leaderboard_around_player(
     player_id: str,
     leaderboard_type: str = Query(LeaderboardType.INDIVIDUAL.value, description="排行榜类型"),

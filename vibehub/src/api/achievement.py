@@ -154,7 +154,15 @@ def get_db_session():
 router = APIRouter(prefix="/api/achievement", tags=["achievement"])
 
 
-@router.get("", response_model=AchievementListResponse)
+@router.get(
+    "",
+    response_model=AchievementListResponse,
+    summary="获取玩家成就列表",
+    description="获取指定玩家的成就列表，支持按类别和稀有度筛选。",
+    responses={
+        200: {"description": "成功返回成就列表"},
+    },
+)
 async def get_achievements(
     player_id: str = Query(..., description="玩家 ID"),
     category: AchievementCategoryEnum | None = Query(None, description="成就类别筛选"),
@@ -193,7 +201,16 @@ async def get_achievements(
     )
 
 
-@router.get("/stats", response_model=AchievementStatsResponse)
+@router.get(
+    "/stats",
+    response_model=AchievementStatsResponse,
+    summary="获取玩家成就统计信息",
+    description="获取玩家的成就完成统计，包括各类别的完成情况。",
+    responses={
+        200: {"description": "成功返回统计信息"},
+        404: {"description": "玩家不存在"},
+    },
+)
 async def get_achievement_stats(
     player_id: str = Query(..., description="玩家 ID"),
     session: Session = Depends(get_db_session),
@@ -219,7 +236,16 @@ async def get_achievement_stats(
     return AchievementStatsResponse(**stats)
 
 
-@router.get("/{achievement_id}", response_model=AchievementResponse)
+@router.get(
+    "/{achievement_id}",
+    response_model=AchievementResponse,
+    summary="获取单个成就详情",
+    description="获取指定成就的详细信息和玩家进度。",
+    responses={
+        200: {"description": "成功返回成就详情"},
+        404: {"description": "成就不存在"},
+    },
+)
 async def get_achievement_detail(
     achievement_id: str,
     player_id: str = Query(..., description="玩家 ID"),
@@ -247,7 +273,16 @@ async def get_achievement_detail(
     return AchievementResponse(**detail)
 
 
-@router.post("/{achievement_id}/progress", response_model=ProgressUpdateResponse)
+@router.post(
+    "/{achievement_id}/progress",
+    response_model=ProgressUpdateResponse,
+    summary="直接更新成就进度",
+    description="直接增加指定成就的进度值。",
+    responses={
+        200: {"description": "进度更新成功"},
+        404: {"description": "成就或玩家不存在"},
+    },
+)
 async def update_achievement_progress(
     achievement_id: str,
     player_id: str = Query(..., description="玩家 ID"),
@@ -286,7 +321,15 @@ async def update_achievement_progress(
     return ProgressUpdateResponse(**result)
 
 
-@router.post("/update", response_model=EventUpdateResponse)
+@router.post(
+    "/update",
+    response_model=EventUpdateResponse,
+    summary="根据游戏事件更新成就进度",
+    description="根据游戏事件自动更新相关成就的进度。",
+    responses={
+        200: {"description": "更新成功"},
+    },
+)
 async def update_progress_by_event(
     request: EventUpdateRequest,
     player_id: str = Query(..., description="玩家 ID"),
@@ -315,7 +358,17 @@ async def update_progress_by_event(
     )
 
 
-@router.post("/{achievement_id}/claim", response_model=ClaimRewardResponse)
+@router.post(
+    "/{achievement_id}/claim",
+    response_model=ClaimRewardResponse,
+    summary="领取成就奖励",
+    description="领取已完成成就的奖励，奖励会自动添加到玩家账户。",
+    responses={
+        200: {"description": "领取成功"},
+        400: {"description": "成就未完成或已领取"},
+        404: {"description": "成就或玩家不存在"},
+    },
+)
 async def claim_achievement_reward(
     achievement_id: str,
     player_id: str = Query(..., description="玩家 ID"),
@@ -349,7 +402,15 @@ async def claim_achievement_reward(
     return ClaimRewardResponse(**result)
 
 
-@router.post("/initialize", response_model=InitializationResponse)
+@router.post(
+    "/initialize",
+    response_model=InitializationResponse,
+    summary="初始化成就定义",
+    description="初始化成就定义到数据库，通常只在系统首次启动或更新成就配置时调用。",
+    responses={
+        200: {"description": "初始化成功"},
+    },
+)
 async def initialize_achievements(
     session: Session = Depends(get_db_session),
 ) -> InitializationResponse:
@@ -372,7 +433,15 @@ async def initialize_achievements(
     )
 
 
-@router.post("/ensure-progress", response_model=dict[str, str])
+@router.post(
+    "/ensure-progress",
+    response_model=dict[str, str],
+    summary="确保玩家进度记录",
+    description="确保玩家拥有所有成就的进度记录，用于新玩家初始化。",
+    responses={
+        200: {"description": "操作成功"},
+    },
+)
 async def ensure_player_progress(
     player_id: str = Query(..., description="玩家 ID"),
     session: Session = Depends(get_db_session),

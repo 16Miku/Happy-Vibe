@@ -72,7 +72,16 @@ class JoinRequest(BaseModel):
 # ==================== API 端点 ====================
 
 
-@router.post("/create")
+@router.post(
+    "/create",
+    summary="创建公会",
+    description="创建一个新的公会，创建者自动成为会长。",
+    responses={
+        200: {"description": "公会创建成功"},
+        400: {"description": "已在公会中或公会名已存在"},
+        404: {"description": "玩家不存在"},
+    },
+)
 async def create_guild(
     request: GuildCreateRequest,
     manager: GuildManager = Depends(get_guild_manager),
@@ -109,7 +118,14 @@ async def create_guild(
         raise HTTPException(status_code=status_code, detail=e.message)
 
 
-@router.get("/list")
+@router.get(
+    "/list",
+    summary="获取公会列表",
+    description="获取公会列表，支持分页、搜索和筛选。",
+    responses={
+        200: {"description": "成功返回公会列表"},
+    },
+)
 async def list_guilds(
     page: int = Query(1, ge=1, description="页码"),
     page_size: int = Query(20, ge=1, le=100, description="每页数量"),
@@ -140,7 +156,15 @@ async def list_guilds(
     )
 
 
-@router.get("/{guild_id}")
+@router.get(
+    "/{guild_id}",
+    summary="获取公会详情",
+    description="获取指定公会的详细信息。",
+    responses={
+        200: {"description": "成功返回公会详情"},
+        404: {"description": "公会不存在"},
+    },
+)
 async def get_guild(
     guild_id: str,
     manager: GuildManager = Depends(get_guild_manager),
@@ -163,7 +187,16 @@ async def get_guild(
         raise HTTPException(status_code=404, detail=e.message)
 
 
-@router.put("/{guild_id}/settings")
+@router.put(
+    "/{guild_id}/settings",
+    summary="更新公会设置",
+    description="更新公会的基本设置，需要管理员权限。",
+    responses={
+        200: {"description": "更新成功"},
+        400: {"description": "更新失败"},
+        403: {"description": "无权限"},
+    },
+)
 async def update_guild_settings(
     guild_id: str,
     request: GuildUpdateRequest,
@@ -199,7 +232,17 @@ async def update_guild_settings(
         raise HTTPException(status_code=status_code, detail=e.message)
 
 
-@router.post("/{guild_id}/join")
+@router.post(
+    "/{guild_id}/join",
+    summary="加入公会",
+    description="申请加入指定公会，需要满足公会的加入条件。",
+    responses={
+        200: {"description": "加入成功"},
+        400: {"description": "已在公会中"},
+        403: {"description": "等级不足"},
+        404: {"description": "公会或玩家不存在"},
+    },
+)
 async def join_guild(
     guild_id: str,
     request: JoinRequest,
@@ -234,7 +277,16 @@ async def join_guild(
         raise HTTPException(status_code=status_code, detail=e.message)
 
 
-@router.post("/leave")
+@router.post(
+    "/leave",
+    summary="离开公会",
+    description="离开当前所在的公会。会长不能直接离开，需要先转让会长。",
+    responses={
+        200: {"description": "离开成功"},
+        400: {"description": "离开失败"},
+        404: {"description": "不在任何公会中"},
+    },
+)
 async def leave_guild(
     player_id: str = Query(..., description="玩家ID"),
     manager: GuildManager = Depends(get_guild_manager),
@@ -260,7 +312,17 @@ async def leave_guild(
         raise HTTPException(status_code=status_code, detail=e.message)
 
 
-@router.delete("/{guild_id}/members/{player_id}")
+@router.delete(
+    "/{guild_id}/members/{player_id}",
+    summary="踢出成员",
+    description="将指定成员踢出公会，需要管理员权限。",
+    responses={
+        200: {"description": "踢出成功"},
+        400: {"description": "操作失败"},
+        403: {"description": "无权限"},
+        404: {"description": "成员不存在"},
+    },
+)
 async def kick_member(
     guild_id: str,
     player_id: str,
@@ -295,7 +357,17 @@ async def kick_member(
         raise HTTPException(status_code=status_code, detail=e.message)
 
 
-@router.put("/{guild_id}/members/{player_id}/role")
+@router.put(
+    "/{guild_id}/members/{player_id}/role",
+    summary="更新成员角色",
+    description="更新公会成员的角色，需要会长权限。",
+    responses={
+        200: {"description": "更新成功"},
+        400: {"description": "更新失败"},
+        403: {"description": "无权限"},
+        404: {"description": "成员不存在"},
+    },
+)
 async def update_member_role(
     guild_id: str,
     player_id: str,
@@ -331,7 +403,15 @@ async def update_member_role(
         raise HTTPException(status_code=status_code, detail=e.message)
 
 
-@router.get("/{guild_id}/members")
+@router.get(
+    "/{guild_id}/members",
+    summary="获取公会成员列表",
+    description="获取指定公会的成员列表，支持分页。",
+    responses={
+        200: {"description": "成功返回成员列表"},
+        404: {"description": "公会不存在"},
+    },
+)
 async def get_guild_members(
     guild_id: str,
     page: int = Query(1, ge=1, description="页码"),
@@ -362,7 +442,16 @@ async def get_guild_members(
         raise HTTPException(status_code=404, detail=e.message)
 
 
-@router.post("/contribute")
+@router.post(
+    "/contribute",
+    summary="向公会贡献",
+    description="向所在公会贡献资源，增加公会经验和个人贡献值。",
+    responses={
+        200: {"description": "贡献成功"},
+        400: {"description": "贡献失败"},
+        403: {"description": "不在任何公会中"},
+    },
+)
 async def contribute_to_guild(
     request: ContributeRequest,
     manager: GuildManager = Depends(get_guild_manager),
@@ -391,7 +480,14 @@ async def contribute_to_guild(
         raise HTTPException(status_code=status_code, detail=e.message)
 
 
-@router.get("/player/{player_id}")
+@router.get(
+    "/player/{player_id}",
+    summary="获取玩家所属公会",
+    description="获取指定玩家所属的公会信息。",
+    responses={
+        200: {"description": "成功返回公会信息或空"},
+    },
+)
 async def get_player_guild(
     player_id: str,
     manager: GuildManager = Depends(get_guild_manager),
@@ -408,7 +504,15 @@ async def get_player_guild(
     return manager.get_player_guild(player_id)
 
 
-@router.post("/{guild_id}/weekly-reset")
+@router.post(
+    "/{guild_id}/weekly-reset",
+    summary="重置本周贡献",
+    description="重置公会所有成员的本周贡献值（管理员接口）。",
+    responses={
+        200: {"description": "重置成功"},
+        404: {"description": "公会不存在"},
+    },
+)
 async def reset_weekly_contributions(
     guild_id: str,
     manager: GuildManager = Depends(get_guild_manager),

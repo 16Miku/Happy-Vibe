@@ -238,7 +238,15 @@ def get_or_create_farm(session: Session, player: Player) -> Farm:
 # ============== API 端点 ==============
 
 
-@router.get("", response_model=FarmResponse)
+@router.get(
+    "",
+    response_model=FarmResponse,
+    summary="获取农场信息",
+    description="返回农场的基本信息和所有地块状态。",
+    responses={
+        200: {"description": "成功返回农场信息"},
+    },
+)
 async def get_farm(session: Session = Depends(get_db_session)):
     """获取农场信息
 
@@ -262,7 +270,15 @@ async def get_farm(session: Session = Depends(get_db_session)):
     )
 
 
-@router.get("/plots", response_model=PlotsResponse)
+@router.get(
+    "/plots",
+    response_model=PlotsResponse,
+    summary="获取所有地块状态",
+    description="返回农场中所有地块的详细信息，包括空地和已种植作物。",
+    responses={
+        200: {"description": "成功返回地块列表"},
+    },
+)
 async def get_plots(session: Session = Depends(get_db_session)):
     """获取所有地块状态
 
@@ -285,7 +301,16 @@ async def get_plots(session: Session = Depends(get_db_session)):
     )
 
 
-@router.post("/plant", response_model=PlantResponse)
+@router.post(
+    "/plant",
+    response_model=PlantResponse,
+    summary="种植作物",
+    description="在指定地块种植作物。地块必须为空，作物类型必须有效。",
+    responses={
+        200: {"description": "种植成功"},
+        400: {"description": "无效的作物类型或地块已有作物"},
+    },
+)
 async def plant_crop(request: PlantRequest, session: Session = Depends(get_db_session)):
     """种植作物
 
@@ -347,7 +372,17 @@ async def plant_crop(request: PlantRequest, session: Session = Depends(get_db_se
     )
 
 
-@router.post("/water", response_model=WaterResponse)
+@router.post(
+    "/water",
+    response_model=WaterResponse,
+    summary="浇水",
+    description="为指定地块的作物浇水，加速生长 20%。每个作物只能浇水一次。",
+    responses={
+        200: {"description": "浇水成功或已浇过水"},
+        400: {"description": "无效的地块索引"},
+        404: {"description": "地块没有作物"},
+    },
+)
 async def water_crop(request: WaterRequest, session: Session = Depends(get_db_session)):
     """浇水
 
@@ -397,7 +432,17 @@ async def water_crop(request: WaterRequest, session: Session = Depends(get_db_se
     )
 
 
-@router.post("/harvest", response_model=HarvestResponse)
+@router.post(
+    "/harvest",
+    response_model=HarvestResponse,
+    summary="收获作物",
+    description="收获指定地块的成熟作物，获得金币奖励。作物必须生长完成才能收获。",
+    responses={
+        200: {"description": "收获成功"},
+        400: {"description": "作物尚未成熟"},
+        404: {"description": "地块没有作物"},
+    },
+)
 async def harvest_crop(request: HarvestRequest, session: Session = Depends(get_db_session)):
     """收获作物
 
@@ -463,7 +508,15 @@ async def harvest_crop(request: HarvestRequest, session: Session = Depends(get_d
     )
 
 
-@router.get("/crops", response_model=CropsConfigResponse)
+@router.get(
+    "/crops",
+    response_model=CropsConfigResponse,
+    summary="获取作物配置信息",
+    description="返回所有可种植作物的配置信息和品质倍数。",
+    responses={
+        200: {"description": "成功返回作物配置"},
+    },
+)
 async def get_crops_config():
     """获取作物配置信息
 

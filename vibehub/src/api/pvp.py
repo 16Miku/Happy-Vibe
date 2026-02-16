@@ -244,7 +244,17 @@ def get_pvp_manager(session: Session = Depends(get_db_session)) -> PVPManager:
 router = APIRouter(prefix="/api/pvp", tags=["pvp"])
 
 
-@router.post("/matchmaking", response_model=MatchmakingResponse)
+@router.post(
+    "/matchmaking",
+    response_model=MatchmakingResponse,
+    summary="加入匹配队列",
+    description="加入 PVP 匹配队列，系统会自动匹配积分相近的对手。",
+    responses={
+        200: {"description": "成功加入队列或匹配成功"},
+        400: {"description": "已在队列中"},
+        404: {"description": "玩家不存在"},
+    },
+)
 async def join_matchmaking(
     request: MatchmakingRequest,
     manager: PVPManager = Depends(get_pvp_manager),
@@ -287,7 +297,15 @@ async def join_matchmaking(
         )
 
 
-@router.delete("/matchmaking", response_model=CancelMatchmakingResponse)
+@router.delete(
+    "/matchmaking",
+    response_model=CancelMatchmakingResponse,
+    summary="取消匹配",
+    description="取消当前的匹配队列。",
+    responses={
+        200: {"description": "取消成功"},
+    },
+)
 async def cancel_matchmaking(
     player_id: str,
     manager: PVPManager = Depends(get_pvp_manager),
@@ -304,7 +322,14 @@ async def cancel_matchmaking(
     return CancelMatchmakingResponse(**result)
 
 
-@router.get("/matchmaking/queue")
+@router.get(
+    "/matchmaking/queue",
+    summary="获取匹配队列状态",
+    description="获取当前匹配队列的状态信息。",
+    responses={
+        200: {"description": "成功返回队列状态"},
+    },
+)
 async def get_matchmaking_queue(
     manager: PVPManager = Depends(get_pvp_manager),
 ) -> dict:
@@ -328,7 +353,16 @@ async def get_matchmaking_queue(
     }
 
 
-@router.get("/match/{match_id}", response_model=MatchInfoResponse)
+@router.get(
+    "/match/{match_id}",
+    response_model=MatchInfoResponse,
+    summary="获取对战信息",
+    description="获取指定对战的详细信息。",
+    responses={
+        200: {"description": "成功返回对战信息"},
+        404: {"description": "对战不存在"},
+    },
+)
 async def get_match_info(
     match_id: str,
     manager: PVPManager = Depends(get_pvp_manager),
@@ -351,7 +385,16 @@ async def get_match_info(
         )
 
 
-@router.post("/match/{match_id}/start", response_model=StartMatchResponse)
+@router.post(
+    "/match/{match_id}/start",
+    response_model=StartMatchResponse,
+    summary="开始对战",
+    description="开始指定的对战，双方玩家准备就绪后调用。",
+    responses={
+        200: {"description": "对战开始成功"},
+        400: {"description": "对战状态不正确"},
+    },
+)
 async def start_match(
     match_id: str,
     manager: PVPManager = Depends(get_pvp_manager),
@@ -374,7 +417,16 @@ async def start_match(
         )
 
 
-@router.post("/match/{match_id}/result", response_model=SubmitResultResponse)
+@router.post(
+    "/match/{match_id}/result",
+    response_model=SubmitResultResponse,
+    summary="提交对战结果",
+    description="提交对战结果，系统会自动计算积分变化。",
+    responses={
+        200: {"description": "结果提交成功"},
+        400: {"description": "对战状态不正确"},
+    },
+)
 async def submit_match_result(
     match_id: str,
     request: SubmitResultRequest,
@@ -415,7 +467,17 @@ async def submit_match_result(
         )
 
 
-@router.post("/match/{match_id}/spectate", response_model=SpectateResponse)
+@router.post(
+    "/match/{match_id}/spectate",
+    response_model=SpectateResponse,
+    summary="加入观战",
+    description="加入指定对战的观战，需要对战允许观战。",
+    responses={
+        200: {"description": "加入观战成功"},
+        400: {"description": "对战不允许观战"},
+        404: {"description": "玩家或对战不存在"},
+    },
+)
 async def join_spectate(
     match_id: str,
     player_id: str,
@@ -449,7 +511,15 @@ async def join_spectate(
         )
 
 
-@router.delete("/match/{match_id}/spectate", response_model=SpectateResponse)
+@router.delete(
+    "/match/{match_id}/spectate",
+    response_model=SpectateResponse,
+    summary="离开观战",
+    description="离开当前观战的对战。",
+    responses={
+        200: {"description": "离开观战成功"},
+    },
+)
 async def leave_spectate(
     match_id: str,
     spectator_id: str,
@@ -471,7 +541,15 @@ async def leave_spectate(
     )
 
 
-@router.get("/match/{match_id}/spectators", response_model=SpectatorsResponse)
+@router.get(
+    "/match/{match_id}/spectators",
+    response_model=SpectatorsResponse,
+    summary="获取观战列表",
+    description="获取指定对战的所有观战者列表。",
+    responses={
+        200: {"description": "成功返回观战者列表"},
+    },
+)
 async def get_spectators(
     match_id: str,
     manager: PVPManager = Depends(get_pvp_manager),
@@ -492,7 +570,15 @@ async def get_spectators(
     )
 
 
-@router.get("/matches/active", response_model=ActiveMatchesResponse)
+@router.get(
+    "/matches/active",
+    response_model=ActiveMatchesResponse,
+    summary="获取活跃对战列表",
+    description="获取当前正在进行的对战列表。",
+    responses={
+        200: {"description": "成功返回活跃对战列表"},
+    },
+)
 async def get_active_matches(
     limit: int = 50,
     manager: PVPManager = Depends(get_pvp_manager),
@@ -512,7 +598,15 @@ async def get_active_matches(
     )
 
 
-@router.get("/ranking", response_model=RankingListResponse)
+@router.get(
+    "/ranking",
+    response_model=RankingListResponse,
+    summary="获取积分排行榜",
+    description="获取 PVP 积分排行榜，支持按赛季筛选。",
+    responses={
+        200: {"description": "成功返回排行榜"},
+    },
+)
 async def get_ranking_list(
     season_id: str | None = None,
     limit: int = 100,
@@ -537,7 +631,16 @@ async def get_ranking_list(
     )
 
 
-@router.get("/ranking/{player_id}", response_model=RankingInfo)
+@router.get(
+    "/ranking/{player_id}",
+    response_model=RankingInfo,
+    summary="获取玩家积分信息",
+    description="获取指定玩家的 PVP 积分和排名信息。",
+    responses={
+        200: {"description": "成功返回玩家排名信息"},
+        404: {"description": "玩家不存在"},
+    },
+)
 async def get_player_ranking(
     player_id: str,
     season_id: str | None = None,
@@ -562,7 +665,15 @@ async def get_player_ranking(
         )
 
 
-@router.get("/history/{player_id}", response_model=MatchHistoryResponse)
+@router.get(
+    "/history/{player_id}",
+    response_model=MatchHistoryResponse,
+    summary="获取玩家对战历史",
+    description="获取指定玩家的 PVP 对战历史记录。",
+    responses={
+        200: {"description": "成功返回对战历史"},
+    },
+)
 async def get_player_match_history(
     player_id: str,
     limit: int = 20,
