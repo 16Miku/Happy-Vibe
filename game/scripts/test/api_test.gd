@@ -1,5 +1,5 @@
 ## api_test.gd
-## API 测试脚本
+## API 测试脚本 - 测试 Godot 客户端与 VibeHub API 的对接
 extends Node
 
 ## 测试计数
@@ -9,6 +9,10 @@ var failed_count: int = 0
 
 ## 测试结果
 var test_results: Array[String] = []
+
+## API 连接测试结果
+var api_test_pending: int = 0
+var api_test_results: Dictionary = {}
 
 
 func _ready() -> void:
@@ -25,6 +29,7 @@ func run_tests() -> void:
 	passed_count = 0
 	failed_count = 0
 	test_results.clear()
+	api_test_results.clear()
 
 	# 等待 AutoLoad 单例初始化
 	await get_tree().process_frame
@@ -46,6 +51,9 @@ func run_tests() -> void:
 
 	# 测试 6: 检查 DataManager 数据类
 	test_data_classes()
+
+	# 测试 7: API 连接测试（异步）
+	await test_api_connections()
 
 	# 输出测试结果
 	print_test_results()
@@ -100,11 +108,6 @@ func test_data_classes() -> void:
 	test_count += 1
 	var test_name := "测试 %d: DataManager 数据类检查" % test_count
 
-	var has_player_data := DataManager.ClassDB.class_exists("DataManager.PlayerData") or true  # GDScript 内部类
-	var has_achievement_def := true
-	var has_guild_data := true
-	var has_pvp_info := true
-
 	# 检查 DataManager 是否有数据同步方法
 	var has_sync_player := DataManager.has_method("sync_player")
 	var has_sync_achievements := DataManager.has_method("sync_achievements")
@@ -120,6 +123,81 @@ func test_data_classes() -> void:
 	if not has_sync_pvp: missing.append("sync_pvp")
 
 	_log_result(test_name, result, ", 缺少: %s" % ", ".join(missing) if not result else "")
+
+
+## 测试 API 连接
+func test_api_connections() -> void:
+	if not ApiManager:
+		_log_result("测试 API 连接", false, "ApiManager 不存在")
+		return
+
+	print("\n--- API 连接测试 ---")
+	print("正在连接 VibeHub 服务: %s" % ApiManager.get_base_url())
+
+	# 设置测试玩家 ID
+	ApiManager.set_player_id("test_player_001")
+
+	# 定义要测试的 API 端点
+	var api_tests := [
+		{"name": "健康检查", "method": "health_check"},
+		{"name": "玩家数据", "method": "get_player"},
+		{"name": "公会列表", "method": "get_guilds"},
+		{"name": "当前赛季", "method": "get_current_season"},
+		{"name": "PVP 排行榜", "method": "get_pvp_leaderboard"},
+	]
+
+	api_test_pending = api_tests.size()
+
+	for api_test in api_tests:
+		_test_api_endpoint(api_test["name"], api_test["method"])
+
+	# 等待所有 API 测试完成（最多 10 秒）
+	var wait_time := 0.0
+	while api_test_pending > 0 and wait_time < 10.0:
+		await get_tree().create_timer(0.5).timeout
+		wait_time += 0.5
+
+	# 记录 API 测试结果
+	for api_name in api_test_results:
+		test_count += 1
+		var api_result: Dictionary = api_test_results[api_name]
+		var test_name := "测试 %d: API %s" % [test_count, api_name]
+		_log_result(test_name, api_result["success"], api_result.get("message", ""))
+
+
+## 测试单个 API 端点
+func _test_api_endpoint(api_name: String, method_name: String) -> void:
+	if not ApiManager.has_method(method_name):
+		api_test_results[api_name] = {"success": false, "message": "方法不存在"}
+		api_test_pending -= 1
+		return
+
+	var callback := func(success: bool, data: Dictionary):
+		var message := ""
+		if success:
+			message = "响应正常"
+		else:
+			message = data.get("detail", "请求失败")
+
+		api_test_results[api_name] = {"success": success, "message": message}
+		api_test_pending -= 1
+		print("  [%s] %s: %s" % ["✓" if success else "✗", api_name, message])
+
+	# 调用 API 方法
+	match method_name:
+		"health_check":
+			ApiManager.health_check(callback)
+		"get_player":
+			ApiManager.get_player(callback)
+		"get_guilds":
+			ApiManager.get_guilds(1, 10, callback)
+		"get_current_season":
+			ApiManager.get_current_season(callback)
+		"get_pvp_leaderboard":
+			ApiManager.get_pvp_leaderboard(1, 10, callback)
+		_:
+			api_test_results[api_name] = {"success": false, "message": "未知方法"}
+			api_test_pending -= 1
 
 
 ## 记录测试结果
@@ -154,4 +232,22 @@ func print_test_results() -> void:
 		print("🎉 所有测试通过！")
 	else:
 		print("⚠️ 存在 %d 个失败的测试" % failed_count)
+
+	# 打印 API 端点修复说明
+	print("")
+	print("=" * 50)
+	print("API 端点对照表 (Godot -> VibeHub)")
+	print("=" * 50)
+	print("健康检查: /api/health -> /health ✓")
+	print("玩家数据: /api/player -> /api/player ✓")
+	print("成就系统: /api/achievement?player_id=xxx")
+	print("公会系统: /api/guilds ✓")
+	print("排行榜: /api/leaderboard/{type}")
+	print("赛季: /api/season/current")
+	print("PVP: /api/pvp/ranking")
+	print("能量: /api/energy/status?player_id=xxx")
+	print("签到: /api/check-in")
+	print("农场: /api/farm?player_id=xxx")
+	print("任务: /api/quest/daily?player_id=xxx")
+	print("商店: /api/shop/{type}/items")
 	print("=" * 50)

@@ -217,7 +217,7 @@ func update_player(player_data: Dictionary, callback: Callable = Callable()) -> 
 
 ## 获取能量数据
 func get_energy(callback: Callable = Callable()) -> int:
-	return get("/energy", {}, callback)
+	return get("/energy/status", {"player_id": player_id}, callback)
 
 
 ## 收集能量
@@ -237,29 +237,29 @@ func add_exp(amount: int, callback: Callable = Callable()) -> int:
 
 ## 每日签到
 func daily_checkin(callback: Callable = Callable()) -> int:
-	return post("/checkin", {}, callback)
+	return post("/check-in", {"player_id": player_id}, callback)
 
 
 ## 获取签到状态
 func get_checkin_status(callback: Callable = Callable()) -> int:
-	return get("/checkin", {}, callback)
+	return get("/check-in/status", {"player_id": player_id}, callback)
 
 
 # ---------- 成就 API ----------
 
 ## 获取所有成就定义
 func get_achievements(callback: Callable = Callable()) -> int:
-	return get("/achievements", {}, callback)
+	return get("/achievement", {"player_id": player_id}, callback)
 
 
 ## 获取玩家成就进度
 func get_achievement_progress(callback: Callable = Callable()) -> int:
-	return get("/achievements/progress", {}, callback)
+	return get("/achievement/progress", {"player_id": player_id}, callback)
 
 
 ## 领取成就奖励
 func claim_achievement_reward(achievement_id: String, callback: Callable = Callable()) -> int:
-	return post("/achievements/%s/claim" % achievement_id, {}, callback)
+	return post("/achievement/%s/claim" % achievement_id, {"player_id": player_id}, callback)
 
 
 # ---------- 公会 API ----------
@@ -308,73 +308,73 @@ func get_my_guild(callback: Callable = Callable()) -> int:
 
 ## 获取排行榜列表
 func get_leaderboards(callback: Callable = Callable()) -> int:
-	return get("/leaderboards", {}, callback)
+	return get("/leaderboard/types", {}, callback)
 
 
 ## 获取指定排行榜
 func get_leaderboard(lb_type: String, page: int = 1, page_size: int = 50, callback: Callable = Callable()) -> int:
-	return get("/leaderboards/%s" % lb_type, {"page": page, "page_size": page_size}, callback)
+	return get("/leaderboard/%s" % lb_type, {"page": page, "page_size": page_size}, callback)
 
 
 ## 获取玩家排名
 func get_player_rank(lb_type: String, callback: Callable = Callable()) -> int:
-	return get("/leaderboards/%s/my-rank" % lb_type, {}, callback)
+	return get("/leaderboard/%s/rank" % lb_type, {"player_id": player_id}, callback)
 
 
 # ---------- 赛季 API ----------
 
 ## 获取当前赛季信息
 func get_current_season(callback: Callable = Callable()) -> int:
-	return get("/seasons/current", {}, callback)
+	return get("/season/current", {}, callback)
 
 
 ## 获取赛季排行
 func get_season_leaderboard(season_id: String, callback: Callable = Callable()) -> int:
-	return get("/seasons/%s/leaderboard" % season_id, {}, callback)
+	return get("/season/%s/leaderboard" % season_id, {}, callback)
 
 
 # ---------- PVP 竞技场 API ----------
 
 ## 获取 PVP 玩家信息
 func get_pvp_info(callback: Callable = Callable()) -> int:
-	return get("/pvp/me", {}, callback)
+	return get("/pvp/ranking/%s" % player_id, {}, callback)
 
 
 ## 获取 PVP 排行榜
 func get_pvp_leaderboard(page: int = 1, page_size: int = 50, callback: Callable = Callable()) -> int:
-	return get("/pvp/leaderboard", {"page": page, "page_size": page_size}, callback)
+	return get("/pvp/ranking", {"limit": page_size, "offset": (page - 1) * page_size}, callback)
 
 
 ## 发起 PVP 匹配
 func start_pvp_matchmaking(callback: Callable = Callable()) -> int:
-	return post("/pvp/matchmaking", {}, callback)
+	return post("/pvp/matchmaking", {"player_id": player_id}, callback)
 
 
 ## 获取 PVP 匹配状态
 func get_match_status(match_id: String, callback: Callable = Callable()) -> int:
-	return get("/pvp/matches/%s" % match_id, {}, callback)
+	return get("/pvp/match/%s" % match_id, {}, callback)
 
 
 ## 提交 PVP 战斗结果
 func submit_pvp_result(match_id: String, result_data: Dictionary, callback: Callable = Callable()) -> int:
-	return post("/pvp/matches/%s/result" % match_id, result_data, callback)
+	return post("/pvp/match/%s/result" % match_id, result_data, callback)
 
 
 ## 获取 PVP 战斗历史
 func get_pvp_history(page: int = 1, page_size: int = 20, callback: Callable = Callable()) -> int:
-	return get("/pvp/history", {"page": page, "page_size": page_size}, callback)
+	return get("/pvp/history/%s" % player_id, {"limit": page_size}, callback)
 
 
 # ---------- 商城 API ----------
 
 ## 获取商城商品
 func get_shop_items(shop_type: String = "general", callback: Callable = Callable()) -> int:
-	return get("/shops/%s/items" % shop_type, {}, callback)
+	return get("/shop/%s/items" % shop_type, {}, callback)
 
 
 ## 购买商品
 func buy_item(shop_type: String, item_id: String, callback: Callable = Callable()) -> int:
-	return post("/shops/%s/buy" % shop_type, {"item_id": item_id}, callback)
+	return post("/shop/%s/buy" % shop_type, {"item_id": item_id, "player_id": player_id}, callback)
 
 
 # ---------- 拍卖行 API ----------
@@ -430,34 +430,36 @@ func get_flow_status(callback: Callable = Callable()) -> int:
 
 ## 获取农场数据
 func get_farm(callback: Callable = Callable()) -> int:
-	return get("/farm", {}, callback)
+	return get("/farm", {"player_id": player_id}, callback)
 
 
 ## 更新农场数据
 func update_farm(farm_data: Dictionary, callback: Callable = Callable()) -> int:
-	return post("/farm", farm_data, callback)
+	var data := farm_data.duplicate()
+	data["player_id"] = player_id
+	return post("/farm", data, callback)
 
 
 # ---------- 任务 API ----------
 
 ## 获取日常任务
 func get_daily_quests(callback: Callable = Callable()) -> int:
-	return get("/quest/daily", {}, callback)
+	return get("/quest/daily", {"player_id": player_id}, callback)
 
 
 ## 获取周常任务
 func get_weekly_quests(callback: Callable = Callable()) -> int:
-	return get("/quest/weekly", {}, callback)
+	return get("/quest/weekly", {"player_id": player_id}, callback)
 
 
 ## 完成任务
 func complete_quest(quest_id: String, callback: Callable = Callable()) -> int:
-	return post("/quest/%s/complete" % quest_id, {}, callback)
+	return post("/quest/%s/complete" % quest_id, {"player_id": player_id}, callback)
 
 
 ## 获取任务进度
 func get_quest_progress(quest_id: String, callback: Callable = Callable()) -> int:
-	return get("/quest/%s/progress" % quest_id, {}, callback)
+	return get("/quest/%s/progress" % quest_id, {"player_id": player_id}, callback)
 
 
 # ==================== 工具方法 ====================
