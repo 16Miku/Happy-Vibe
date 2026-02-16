@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from src.core.pvp_manager import ELOCalculator, PVPManager
 from src.storage.database import get_db
 from src.storage.models import (
+    Player,
     PVPMatch,
     PVPMatchStatus,
     PVPMatchType,
@@ -17,7 +18,6 @@ from src.storage.models import (
     Season,
     generate_uuid,
 )
-from tests.test_quest_manager import test_player as make_test_player
 
 
 @pytest.fixture
@@ -35,7 +35,19 @@ def db_session():
 @pytest.fixture
 def test_player(db_session):
     """创建测试玩家"""
-    return make_test_player(db_session)
+    unique_name = f"test_pvp_player_{uuid.uuid4().hex[:8]}"
+    player = Player(
+        username=unique_name,
+        vibe_energy=100,
+        max_vibe_energy=1000,
+        gold=500,
+        diamonds=10,
+        experience=0,
+    )
+    db_session.add(player)
+    db_session.commit()
+    db_session.refresh(player)
+    return player
 
 
 @pytest.fixture
@@ -60,6 +72,10 @@ def test_player_2(db_session):
 @pytest.fixture
 def test_season(db_session):
     """创建测试赛季"""
+    # 先清理现有的活跃赛季
+    db_session.query(Season).filter(Season.is_active == True).update({"is_active": False})
+    db_session.commit()
+
     season = Season(
         season_id=generate_uuid(),
         season_name="测试赛季",

@@ -68,7 +68,7 @@ class TestStartActivity:
         assert data["message"] == "活动追踪已开始"
 
     async def test_start_activity_player_not_found(self, mock_db):
-        """测试玩家不存在时返回404"""
+        """测试玩家不存在时自动创建玩家"""
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             response = await client.post(
@@ -76,8 +76,10 @@ class TestStartActivity:
                 json={"player_id": "non-existent-player"},
             )
 
-        assert response.status_code == 404
-        assert "玩家不存在" in response.json()["detail"]
+        # API 设计为自动创建不存在的玩家
+        assert response.status_code == 200
+        data = response.json()
+        assert "session_id" in data
 
     async def test_start_activity_duplicate_session(self, mock_db, test_player):
         """测试重复开始活动返回409"""

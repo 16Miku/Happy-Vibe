@@ -27,7 +27,7 @@ def test_db(tmp_path):
 @pytest.fixture
 def mock_db(test_db, monkeypatch):
     """Mock 全局数据库实例"""
-    monkeypatch.setattr("src.api.friend.get_db", lambda: test_db)
+    monkeypatch.setattr("src.api.friends.get_db", lambda: test_db)
     monkeypatch.setattr("src.api.player.get_db", lambda: test_db)
     monkeypatch.setattr("src.api.farm.get_db", lambda: test_db)
     return test_db
