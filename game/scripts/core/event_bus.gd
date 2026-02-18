@@ -235,6 +235,23 @@ signal vibehub_synced()
 ## 网络错误
 signal network_error(error_message: String)
 
+# ==================== 引导相关信号 ====================
+
+## 引导开始
+signal tutorial_started()
+
+## 引导步骤变化
+signal tutorial_step_changed(step_index: int)
+
+## 引导完成
+signal tutorial_completed()
+
+## 引导跳过
+signal tutorial_skipped()
+
+## 退出心流状态（用于 HUD）
+signal flow_state_exited(duration: float)
+
 
 func _ready() -> void:
 	pass

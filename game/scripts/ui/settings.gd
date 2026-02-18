@@ -14,6 +14,7 @@ extends Control
 @onready var vsync_check: CheckBox = $MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/DisplaySection/VSync/VSyncCheck
 @onready var notifications_check: CheckBox = $MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/GameSection/Notifications/NotificationsCheck
 @onready var autosave_check: CheckBox = $MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/GameSection/AutoSave/AutoSaveCheck
+@onready var reset_tutorial_button: Button = $MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/GameSection/ResetTutorial/ResetTutorialButton
 @onready var username_edit: LineEdit = $MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/AccountSection/Username/UsernameEdit
 @onready var save_button: Button = $MarginContainer/VBoxContainer/ButtonContainer/SaveButton
 @onready var reset_button: Button = $MarginContainer/VBoxContainer/ButtonContainer/ResetButton
@@ -42,6 +43,10 @@ func _setup_ui() -> void:
 	# 显示设置
 	fullscreen_check.toggled.connect(_on_fullscreen_toggled)
 	vsync_check.toggled.connect(_on_vsync_toggled)
+
+	# 重置引导按钮
+	if reset_tutorial_button:
+		reset_tutorial_button.pressed.connect(_on_reset_tutorial_pressed)
 
 
 ## 加载设置
@@ -259,3 +264,14 @@ func show_panel() -> void:
 ## 隐藏面板
 func hide_panel() -> void:
 	hide()
+
+
+## 重置引导按钮点击
+func _on_reset_tutorial_pressed() -> void:
+	if TutorialManager:
+		TutorialManager.reset_tutorial()
+		if EventBus:
+			EventBus.notify_success("新手引导已重置，下次进入游戏时将重新显示")
+	else:
+		if EventBus:
+			EventBus.notify_error("无法重置引导")

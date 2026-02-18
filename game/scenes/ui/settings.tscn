@@ -205,6 +205,19 @@ text = "自动保存"
 layout_mode = 2
 button_pressed = true
 
+[node name="ResetTutorial" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/GameSection"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/GameSection/ResetTutorial"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "新手引导"
+
+[node name="ResetTutorialButton" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent/GameSection/ResetTutorial"]
+custom_minimum_size = Vector2(120, 30)
+layout_mode = 2
+text = "重新查看"
+
 [node name="HSeparator4" type="HSeparator" parent="MarginContainer/VBoxContainer/ScrollContainer/SettingsContent"]
 layout_mode = 2
 

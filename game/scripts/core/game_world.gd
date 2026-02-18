@@ -12,6 +12,7 @@ func _ready() -> void:
 	_setup_camera()
 	_connect_signals()
 	_sync_data_from_backend()
+	_check_tutorial()
 
 
 func _setup_camera() -> void:
@@ -96,3 +97,22 @@ func _on_connection_status_changed(connected: bool) -> void:
 		VibeClient.get_farm()
 	else:
 		EventBus.notify("与 VibeHub 断开连接", "warning")
+
+
+func _check_tutorial() -> void:
+	"""检查是否需要显示新手引导"""
+	if TutorialManager and TutorialManager.should_show_tutorial():
+		# 延迟一帧启动引导，确保 HUD 已加载
+		await get_tree().process_frame
+		var hud_node := _find_hud()
+		TutorialManager.start_tutorial(hud_node)
+
+
+func _find_hud() -> Control:
+	"""查找 HUD 节点"""
+	var canvas_layer := get_node_or_null("CanvasLayer")
+	if canvas_layer:
+		var hud_control := canvas_layer.get_node_or_null("HUD")
+		if hud_control:
+			return hud_control
+	return null
