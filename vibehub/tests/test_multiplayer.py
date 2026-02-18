@@ -20,6 +20,8 @@ from src.multiplayer.models import (
     GUILD_LEVEL_CONFIG,
 )
 from src.storage.models import FriendRequestStatus, GuildRole
+from src.api import friends as friends_module
+from src.api import leaderboards as leaderboards_module
 
 
 # ==================== Fixtures ====================
@@ -44,6 +46,24 @@ def mock_websocket():
     ws.send_json = AsyncMock()
     ws.close = AsyncMock()
     return ws
+
+
+@pytest.fixture(autouse=True)
+def reset_state():
+    """每个测试前重置状态"""
+    friends_module._friendships.clear()
+    friends_module._friend_requests.clear()
+    friends_module._player_cache.clear()
+    leaderboards_module._player_stats.clear()
+    leaderboards_module._leaderboard_cache.clear()
+    leaderboards_module._cache_timestamps.clear()
+    yield
+    friends_module._friendships.clear()
+    friends_module._friend_requests.clear()
+    friends_module._player_cache.clear()
+    leaderboards_module._player_stats.clear()
+    leaderboards_module._leaderboard_cache.clear()
+    leaderboards_module._cache_timestamps.clear()
 
 
 # ==================== ConnectionManager 测试 ====================
@@ -109,6 +129,11 @@ class TestConnectionManager:
         await conn_manager.connect(ws1, "player_001")
         await conn_manager.connect(ws2, "player_002")
         await conn_manager.connect(ws3, "player_003")
+
+        # 重置 send_json 调用计数（因为 connect 会触发状态广播）
+        ws1.send_json.reset_mock()
+        ws2.send_json.reset_mock()
+        ws3.send_json.reset_mock()
 
         message = {"type": "broadcast", "content": "Hello everyone"}
         count = await conn_manager.broadcast(message, exclude=["player_001"])
@@ -403,7 +428,7 @@ class TestLeaderboardsAPI:
 
     def test_get_leaderboard_types(self, client):
         """测试获取排行榜类型"""
-        response = client.get("/api/leaderboards/types")
+        response = client.get("/api/leaderboard/types")
         assert response.status_code == 200
         data = response.json()
         assert "types" in data
@@ -417,7 +442,7 @@ class TestLeaderboardsAPI:
 
     def test_get_leaderboard(self, client):
         """测试获取排行榜数据"""
-        response = client.get("/api/leaderboards/level?period=weekly")
+        response = client.get("/api/leaderboard/level?period=weekly")
         assert response.status_code == 200
         data = response.json()
         assert data["type"] == "level"
@@ -427,12 +452,12 @@ class TestLeaderboardsAPI:
 
     def test_get_leaderboard_invalid_type(self, client):
         """测试获取无效类型的排行榜"""
-        response = client.get("/api/leaderboards/invalid_type")
+        response = client.get("/api/leaderboard/invalid_type")
         assert response.status_code == 400
 
     def test_get_player_rank(self, client):
         """测试获取玩家排名"""
-        response = client.get("/api/leaderboards/level/player/player_rank_001?period=weekly")
+        response = client.get("/api/leaderboard/level/player/player_rank_001?period=weekly")
         assert response.status_code == 200
         data = response.json()
         assert "rank" in data
@@ -440,7 +465,7 @@ class TestLeaderboardsAPI:
 
     def test_get_leaderboard_rewards(self, client):
         """测试获取排行榜奖励"""
-        response = client.get("/api/leaderboards/level/rewards")
+        response = client.get("/api/leaderboard/level/rewards")
         assert response.status_code == 200
         data = response.json()
         assert "rewards" in data

@@ -267,9 +267,10 @@ class PVPManager:
         )
 
         if matched:
+            from dataclasses import asdict
             return {
                 "status": "matched",
-                "match": matched,
+                "match": asdict(matched),
             }
 
         # 加入队列
@@ -746,12 +747,13 @@ class PVPManager:
             排名
         """
         # 统计积分高于该玩家的人数
+        from sqlalchemy import func
         count = self.db.execute(
-            select(PVPRanking).where(
+            select(func.count()).select_from(PVPRanking).where(
                 PVPRanking.season_id == season_id,
                 PVPRanking.rating > rating,
             )
-        ).count()
+        ).scalar() or 0
         return count + 1
 
     def get_ranking_list(
@@ -799,6 +801,7 @@ class PVPManager:
             result.append({
                 "rank": offset + i + 1,
                 "player_id": ranking.player_id,
+                "season_id": season_id,
                 "rating": ranking.rating,
                 "max_rating": ranking.max_rating,
                 "matches_played": ranking.matches_played,
