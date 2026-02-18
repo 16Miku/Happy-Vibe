@@ -1,6 +1,6 @@
 [project]
 name = "vibehub"
-version = "0.1.0"
+version = "1.0.0"
 description = "Happy Vibe Hub - Vibe-Coding 游戏化平台本地服务"
 readme = "README.md"
 requires-python = ">=3.11"

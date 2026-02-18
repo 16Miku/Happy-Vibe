@@ -54,7 +54,6 @@ simple_*.py
 # ==================== Godot 相关 ====================
 .godot/
 .import
-export_presets.cfg
 *.translation
 
 # ==================== 系统文件 ====================
