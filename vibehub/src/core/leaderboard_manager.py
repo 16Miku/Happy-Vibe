@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Any
 from uuid import uuid4
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import Session
 
 from src.storage.models import (
@@ -502,15 +502,15 @@ class LeaderboardManager:
         player_score = player.level * 100 + player.experience / 10 + player.gold / 1000
 
         # 计算排名（有多少玩家分数更高）
-        rank_stmt = select(Player).where(
+        rank_stmt = select(func.count()).select_from(Player).where(
             Player.level * 100 + Player.experience / 10 + Player.gold / 1000 > player_score
         )
-        higher_count = self.session.execute(rank_stmt).count()
+        higher_count = self.session.execute(rank_stmt).scalar() or 0
         rank = higher_count + 1
 
         # 获取总玩家数
-        total_stmt = select(Player)
-        total = self.session.execute(total_stmt).count()
+        total_stmt = select(func.count()).select_from(Player)
+        total = self.session.execute(total_stmt).scalar() or 0
 
         return {
             "player_id": player_id,
@@ -557,11 +557,11 @@ class LeaderboardManager:
 
         scores = []
         for p in all_players:
-            stmt = select(AchievementProgress).where(
+            stmt = select(func.count()).select_from(AchievementProgress).where(
                 AchievementProgress.player_id == p.player_id,
                 AchievementProgress.is_completed == True,
             )
-            count = self.session.execute(stmt).count()
+            count = self.session.execute(stmt).scalar() or 0
             scores.append(count)
 
         # 计算排名

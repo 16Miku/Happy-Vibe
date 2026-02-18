@@ -184,13 +184,14 @@ class TestDynamicPricingEngine:
         """测试负向市场趋势"""
         self.engine.update_trend_data("test_item", -1.0)
 
+        # 使用供需平衡的库存（80%以上），避免供需因子干扰
         price = self.engine.calculate_price(
             base_price=100,
             item_name="test_item",
-            current_stock=50,
+            current_stock=85,
             max_stock=100,
         )
-        # 负向趋势应该降低价格
+        # 负向趋势应该降低价格（供需平衡时 multiplier=1.0，trend=-1.0 时 multiplier=0.9）
         assert price < 100
 
     def test_get_all_shop_base_prices(self):
