@@ -2,12 +2,24 @@ extends Control
 ## HUD 脚本
 ## 显示玩家状态信息
 
-@onready var energy_label: Label = $TopBar/EnergyPanel/HBox/EnergyLabel
+## 顶部栏节点
+@onready var energy_label: Label = $TopBar/EnergyPanel/VBox/HBox/EnergyLabel
+@onready var energy_bar: ProgressBar = $TopBar/EnergyPanel/VBox/EnergyBar
+@onready var level_label: Label = $TopBar/ExpPanel/VBox/HBox/LevelLabel
+@onready var exp_bar: ProgressBar = $TopBar/ExpPanel/VBox/ExpBar
 @onready var gold_label: Label = $TopBar/GoldPanel/HBox/GoldLabel
-@onready var level_label: Label = $TopBar/LevelPanel/HBox/LevelLabel
+@onready var diamond_label: Label = $TopBar/DiamondPanel/HBox/DiamondLabel
 @onready var vip_label: Label = $TopBar/VIPPanel/HBox/VIPLabel
+
+## 心流指示器节点
 @onready var flow_indicator: PanelContainer = $FlowIndicator
-@onready var flow_label: Label = $FlowIndicator/HBox/FlowLabel
+@onready var flow_label: Label = $FlowIndicator/VBox/HBox/FlowLabel
+@onready var flow_bonus: Label = $FlowIndicator/VBox/FlowBonus
+
+## 通知区域
+@onready var notification_area: VBoxContainer = $NotificationArea
+
+## 底部按钮
 @onready var quest_button: Button = $BottomBar/QuestButton
 @onready var achievement_button: Button = $BottomBar/AchievementButton
 @onready var guild_button: Button = $BottomBar/GuildButton
@@ -34,10 +46,29 @@ var energy_popup_container: Control = null
 var energy_popup_label: Label = null
 var energy_animation_timer: Timer = null
 var last_energy_popup_time: float = 0.0
-const ENERGY_POPUP_COOLDONN: float = 1.0  # 能量提示冷却时间（秒）
+const ENERGY_POPUP_COOLDOWN: float = 1.0  # 能量提示冷却时间（秒）
 
+## 心流状态
 var flow_time: float = 0.0
 var is_in_flow: bool = false
+var flow_pulse_tween: Tween = null
+
+## 数值动画
+var _target_energy: int = 0
+var _target_exp: float = 0.0
+var _target_gold: int = 0
+var _target_diamonds: int = 0
+var _display_energy: float = 0.0
+var _display_exp: float = 0.0
+var _display_gold: float = 0.0
+var _display_diamonds: float = 0.0
+const VALUE_LERP_SPEED: float = 8.0  # 数值变化速度
+
+## 通知队列
+var _notification_queue: Array[Dictionary] = []
+var _active_notifications: Array[Control] = []
+const MAX_NOTIFICATIONS: int = 5
+const NOTIFICATION_DURATION: float = 3.0
 
 
 func _ready() -> void:
@@ -45,6 +76,7 @@ func _ready() -> void:
 	_setup_energy_popup()
 	_setup_bottom_bar_buttons()
 	_connect_signals()
+	_init_display_values()
 	_update_display()
 
 
@@ -115,6 +147,8 @@ func _connect_signals() -> void:
 	"""连接信号"""
 	GameManager.energy_changed.connect(_on_energy_changed)
 	GameManager.gold_changed.connect(_on_gold_changed)
+	GameManager.diamonds_changed.connect(_on_diamonds_changed)
+	GameManager.exp_changed.connect(_on_exp_changed)
 	GameManager.level_up.connect(_on_level_up)
 
 	# 连接能量奖励信号（用于显示获取动画）
@@ -124,32 +158,120 @@ func _connect_signals() -> void:
 	EventBus.flow_state_entered.connect(_on_flow_entered)
 	EventBus.flow_state_exited.connect(_on_flow_exited)
 
+	# 成就解锁通知
+	if EventBus.has_signal("achievement_unlocked"):
+		EventBus.achievement_unlocked.connect(_on_achievement_unlocked)
+
+
+## 初始化显示数值
+func _init_display_values() -> void:
+	"""初始化显示数值，避免动画从0开始"""
+	_target_energy = GameManager.get_energy()
+	_display_energy = float(_target_energy)
+
+	_target_exp = GameManager.get_exp_progress()
+	_display_exp = _target_exp
+
+	_target_gold = GameManager.get_gold()
+	_display_gold = float(_target_gold)
+
+	_target_diamonds = GameManager.get_diamonds()
+	_display_diamonds = float(_target_diamonds)
+
 
 func _process(delta: float) -> void:
+	# 心流计时
 	if is_in_flow:
 		flow_time += delta
 		_update_flow_display()
+
+	# 平滑数值动画
+	_update_value_animations(delta)
+
+
+## 更新数值动画
+func _update_value_animations(delta: float) -> void:
+	"""平滑更新显示数值"""
+	var lerp_factor := 1.0 - exp(-VALUE_LERP_SPEED * delta)
+
+	# 能量动画
+	if abs(_display_energy - float(_target_energy)) > 0.5:
+		_display_energy = lerpf(_display_energy, float(_target_energy), lerp_factor)
+		_update_energy_display_value()
+
+	# 经验动画
+	if abs(_display_exp - _target_exp) > 0.001:
+		_display_exp = lerpf(_display_exp, _target_exp, lerp_factor)
+		_update_exp_display_value()
+
+	# 金币动画
+	if abs(_display_gold - float(_target_gold)) > 0.5:
+		_display_gold = lerpf(_display_gold, float(_target_gold), lerp_factor)
+		_update_gold_display_value()
+
+	# 钻石动画
+	if abs(_display_diamonds - float(_target_diamonds)) > 0.5:
+		_display_diamonds = lerpf(_display_diamonds, float(_target_diamonds), lerp_factor)
+		_update_diamond_display_value()
 
 
 func _update_display() -> void:
 	"""更新所有显示"""
 	_update_energy_display()
+	_update_exp_display()
 	_update_gold_display()
+	_update_diamond_display()
 	_update_level_display()
 
 
 func _update_energy_display() -> void:
-	"""更新能量显示"""
+	"""更新能量显示（设置目标值）"""
+	_target_energy = GameManager.get_energy()
+	var max_energy := GameManager.get_max_energy()
+	if energy_bar:
+		energy_bar.max_value = max_energy
+
+
+func _update_energy_display_value() -> void:
+	"""更新能量显示数值"""
 	if energy_label:
-		var energy := GameManager.get_energy()
 		var max_energy := GameManager.get_max_energy()
-		energy_label.text = "能量: %d/%d" % [energy, max_energy]
+		energy_label.text = "%d / %d" % [int(_display_energy), max_energy]
+	if energy_bar:
+		energy_bar.value = _display_energy
+
+
+func _update_exp_display() -> void:
+	"""更新经验显示（设置目标值）"""
+	_target_exp = GameManager.get_exp_progress()
+
+
+func _update_exp_display_value() -> void:
+	"""更新经验显示数值"""
+	if exp_bar:
+		exp_bar.value = _display_exp * 100.0
 
 
 func _update_gold_display() -> void:
-	"""更新金币显示"""
+	"""更新金币显示（设置目标值）"""
+	_target_gold = GameManager.get_gold()
+
+
+func _update_gold_display_value() -> void:
+	"""更新金币显示数值"""
 	if gold_label:
-		gold_label.text = str(GameManager.get_gold())
+		gold_label.text = _format_number(int(_display_gold))
+
+
+func _update_diamond_display() -> void:
+	"""更新钻石显示（设置目标值）"""
+	_target_diamonds = GameManager.get_diamonds()
+
+
+func _update_diamond_display_value() -> void:
+	"""更新钻石显示数值"""
+	if diamond_label:
+		diamond_label.text = _format_number(int(_display_diamonds))
 
 
 func _update_level_display() -> void:
@@ -161,6 +283,16 @@ func _update_level_display() -> void:
 		vip_label.text = "VIP %d" % vip_level
 
 
+## 格式化数字显示（大数字简化）
+func _format_number(value: int) -> String:
+	if value >= 1000000:
+		return "%.1fM" % (value / 1000000.0)
+	elif value >= 10000:
+		return "%.1fK" % (value / 1000.0)
+	else:
+		return str(value)
+
+
 func _update_flow_display() -> void:
 	"""更新心流状态显示"""
 	if flow_label:
@@ -168,8 +300,21 @@ func _update_flow_display() -> void:
 		var seconds := int(flow_time) % 60
 		flow_label.text = "心流状态 %02d:%02d" % [minutes, seconds]
 
+	# 更新心流加成显示
+	if flow_bonus:
+		var bonus := _calculate_flow_bonus()
+		flow_bonus.text = "+%d%% 能量加成" % bonus
 
-func _on_energy_changed(_value: int) -> void:
+
+## 计算心流加成百分比
+func _calculate_flow_bonus() -> int:
+	# 基础加成 50%，每分钟额外 +5%，最高 200%
+	var base_bonus := 50
+	var time_bonus := int(flow_time / 60.0) * 5
+	return mini(base_bonus + time_bonus, 200)
+
+
+func _on_energy_changed(_current: int, _max_energy: int) -> void:
 	_update_energy_display()
 
 
@@ -177,8 +322,19 @@ func _on_gold_changed(_value: int) -> void:
 	_update_gold_display()
 
 
-func _on_level_up(_new_level: int) -> void:
+func _on_diamonds_changed(_value: int) -> void:
+	_update_diamond_display()
+
+
+func _on_exp_changed(_current: int, _needed: int) -> void:
+	_update_exp_display()
+
+
+func _on_level_up(new_level: int) -> void:
 	_update_level_display()
+	_update_exp_display()
+	# 显示升级通知
+	show_notification("🎉 升级！", "恭喜达到 Lv.%d" % new_level, Color(1.0, 0.84, 0.0))
 
 
 func _on_flow_entered() -> void:
@@ -187,6 +343,8 @@ func _on_flow_entered() -> void:
 	flow_time = 0.0
 	if flow_indicator:
 		flow_indicator.visible = true
+		_start_flow_pulse_animation()
+	show_notification("🔥 心流状态", "进入心流，能量获取加成！", Color(1.0, 0.5, 0.0))
 
 
 func _on_flow_exited(_duration: float) -> void:
@@ -194,6 +352,34 @@ func _on_flow_exited(_duration: float) -> void:
 	is_in_flow = false
 	if flow_indicator:
 		flow_indicator.visible = false
+	_stop_flow_pulse_animation()
+	var minutes := int(_duration) / 60
+	show_notification("心流结束", "本次心流持续 %d 分钟" % minutes, Color(0.6, 0.6, 0.6))
+
+
+## 开始心流脉冲动画
+func _start_flow_pulse_animation() -> void:
+	if flow_pulse_tween:
+		flow_pulse_tween.kill()
+
+	flow_pulse_tween = create_tween()
+	flow_pulse_tween.set_loops()
+	flow_pulse_tween.tween_property(flow_indicator, "modulate", Color(1.2, 1.0, 0.8, 1.0), 0.5)
+	flow_pulse_tween.tween_property(flow_indicator, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.5)
+
+
+## 停止心流脉冲动画
+func _stop_flow_pulse_animation() -> void:
+	if flow_pulse_tween:
+		flow_pulse_tween.kill()
+		flow_pulse_tween = null
+	if flow_indicator:
+		flow_indicator.modulate = Color(1.0, 1.0, 1.0, 1.0)
+
+
+## 成就解锁处理
+func _on_achievement_unlocked(achievement_id: String, achievement_name: String) -> void:
+	show_notification("🏆 成就解锁", achievement_name, Color(1.0, 0.84, 0.0))
 
 
 ## ==================== 头像系统 ====================
@@ -255,7 +441,7 @@ func _on_energy_awarded(amount: int, source: String) -> void:
 
 	var current_time := Time.get_unix_time_from_system()
 	# 检查冷却时间
-	if current_time - last_energy_popup_time < ENERGY_POPUP_COOLDONN:
+	if current_time - last_energy_popup_time < ENERGY_POPUP_COOLDOWN:
 		return
 
 	_show_energy_popup(amount)
@@ -506,3 +692,73 @@ func _on_pvp_button_pressed() -> void:
 	else:
 		_hide_all_panels()
 		pvp_panel.show()
+
+
+## ==================== 通知系统 ====================
+
+## 显示通知
+func show_notification(title: String, message: String, color: Color = Color.WHITE) -> void:
+	"""显示一条通知"""
+	_notification_queue.append({
+		"title": title,
+		"message": message,
+		"color": color
+	})
+	_process_notification_queue()
+
+
+## 处理通知队列
+func _process_notification_queue() -> void:
+	"""处理等待中的通知"""
+	while _notification_queue.size() > 0 and _active_notifications.size() < MAX_NOTIFICATIONS:
+		var notif_data: Dictionary = _notification_queue.pop_front()
+		_create_notification(notif_data)
+
+
+## 创建通知UI
+func _create_notification(data: Dictionary) -> void:
+	"""创建通知面板"""
+	if not notification_area:
+		return
+
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(300, 60)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 2)
+
+	var title_label := Label.new()
+	title_label.text = data.get("title", "")
+	title_label.add_theme_color_override("font_color", data.get("color", Color.WHITE))
+	title_label.add_theme_font_size_override("font_size", 16)
+
+	var msg_label := Label.new()
+	msg_label.text = data.get("message", "")
+	msg_label.add_theme_font_size_override("font_size", 14)
+	msg_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+
+	vbox.add_child(title_label)
+	vbox.add_child(msg_label)
+	panel.add_child(vbox)
+
+	# 初始透明
+	panel.modulate.a = 0.0
+	notification_area.add_child(panel)
+	_active_notifications.append(panel)
+
+	# 淡入动画
+	var tween := create_tween()
+	tween.tween_property(panel, "modulate:a", 1.0, 0.3)
+	tween.tween_interval(NOTIFICATION_DURATION)
+	tween.tween_property(panel, "modulate:a", 0.0, 0.3)
+	tween.tween_callback(_remove_notification.bind(panel))
+
+
+## 移除通知
+func _remove_notification(panel: Control) -> void:
+	"""移除通知面板"""
+	if panel in _active_notifications:
+		_active_notifications.erase(panel)
+	if is_instance_valid(panel):
+		panel.queue_free()
+	_process_notification_queue()
