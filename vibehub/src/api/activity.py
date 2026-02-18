@@ -258,10 +258,10 @@ async def start_activity(
     # 检查玩家是否存在，不存在则创建
     player = db_session.query(Player).filter_by(player_id=player_id).first()
     if not player:
-        # 自动创建默认玩家
+        # 自动创建默认玩家（使用 player_id 作为 username 避免唯一约束冲突）
         player = Player(
             player_id=player_id,
-            username="DefaultPlayer",
+            username=player_id,
             vibe_energy=100,
             max_vibe_energy=1000,
             gold=500,
