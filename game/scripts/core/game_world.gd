@@ -2,14 +2,16 @@ extends Node2D
 ## 游戏世界场景脚本
 ## 管理游戏主场景的初始化和更新
 
-@onready var camera: Camera2D = $Camera2D
 @onready var player: CharacterBody2D = $Player
+@onready var camera: Camera2D = $Player/Camera2D
 @onready var hud: Control = $CanvasLayer/HUD
+@onready var farm: Node2D = $Farm
 
 
 func _ready() -> void:
 	_setup_camera()
 	_connect_signals()
+	_sync_data_from_backend()
 
 
 func _setup_camera() -> void:
@@ -59,3 +61,38 @@ func _toggle_pause() -> void:
 			EventBus.game_paused.emit()
 		else:
 			EventBus.game_resumed.emit()
+
+
+func _sync_data_from_backend() -> void:
+	"""从后端同步数据"""
+	# 连接 VibeClient 信号
+	if VibeClient:
+		VibeClient.energy_received.connect(_on_energy_received)
+		VibeClient.farm_data_received.connect(_on_farm_data_received)
+		VibeClient.connection_status_changed.connect(_on_connection_status_changed)
+
+		# 请求初始数据
+		if VibeClient.is_connected:
+			VibeClient.get_player()
+			VibeClient.get_farm()
+
+
+func _on_energy_received(amount: int, _breakdown: Dictionary) -> void:
+	"""收到能量数据"""
+	GameManager.add_energy(amount)
+
+
+func _on_farm_data_received(data: Dictionary) -> void:
+	"""收到农场数据"""
+	if farm and farm.has_method("load_from_data"):
+		farm.load_from_data(data)
+
+
+func _on_connection_status_changed(connected: bool) -> void:
+	"""连接状态变化"""
+	if connected:
+		EventBus.notify("已连接到 VibeHub", "success")
+		VibeClient.get_player()
+		VibeClient.get_farm()
+	else:
+		EventBus.notify("与 VibeHub 断开连接", "warning")

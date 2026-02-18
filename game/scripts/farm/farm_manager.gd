@@ -20,7 +20,31 @@ func _ready() -> void:
 func _load_farm_data() -> void:
 	"""从 GameManager 加载农场数据"""
 	var farm_data: Dictionary = GameManager.player_data.get("farm", {})
-	# TODO: 根据保存的数据恢复农场状态
+	load_from_data(farm_data)
+
+
+func load_from_data(data: Dictionary) -> void:
+	"""从数据字典加载农场状态"""
+	# 清除现有地块
+	for plot in plots:
+		plot.queue_free()
+	plots.clear()
+
+	# 加载地块
+	var plots_data: Array = data.get("plots", [])
+	for plot_data in plots_data:
+		if plot_data is Dictionary:
+			var pos := Vector2(
+				plot_data.get("x", 0),
+				plot_data.get("y", 0)
+			)
+			var plot := add_plot(pos)
+			if plot and plot.has_method("deserialize"):
+				plot.deserialize(plot_data)
+
+	# 如果没有地块，创建默认的 3x3 地块
+	if plots.is_empty():
+		_create_default_plots()
 
 
 func save_farm_data() -> void:
@@ -68,3 +92,14 @@ func get_plot_at(position: Vector2) -> Node2D:
 		if plot.position.distance_to(position) < 32:  # 假设地块大小为 32x32
 			return plot
 	return null
+
+
+func _create_default_plots() -> void:
+	"""创建默认的 3x3 地块"""
+	var start_pos := Vector2(0, 0)
+	var plot_size := 64  # 地块间距
+
+	for row in range(3):
+		for col in range(3):
+			var pos := start_pos + Vector2(col * plot_size, row * plot_size)
+			add_plot(pos)

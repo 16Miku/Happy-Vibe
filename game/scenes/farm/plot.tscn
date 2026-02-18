@@ -1,12 +1,19 @@
-[gd_scene load_steps=2 format=3 uid="uid://plot"]
+[gd_scene load_steps=4 format=3 uid="uid://plot"]
 
 [ext_resource type="Script" path="res://scripts/farm/plot.gd" id="1_plot"]
+[ext_resource type="Texture2D" uid="uid://soil_placeholder" path="res://assets/tiles/soil.png" id="2_soil_texture"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_plot"]
+size = Vector2(64, 64)
 
 [node name="Plot" type="Area2D"]
 script = ExtResource("1_plot")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_plot")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_soil_texture")
 
 [node name="CropSprite" type="Sprite2D" parent="."]
+position = Vector2(0, -16)
